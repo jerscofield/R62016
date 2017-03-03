@@ -10,6 +10,7 @@ class ObstacleNode:
         self.is_searching = 0
         #self.which_quadrant
         self.node_number = node_number
+        self.is_tunnel = 0
         #put all of the variables in a data object
 
 
@@ -19,6 +20,7 @@ class Grid(object):
         self.is_searching = False
         self.current_side = 's'
         self.number_of_nodes = number_of_nodes
+        self.is_corner = 0
         self.grid = []
         for i in range(number_of_nodes):
             self.grid.append(ObstacleNode(i + 1))
@@ -44,10 +46,13 @@ class Grid(object):
             # go to next node
             self.next_node()
 
-    def update_node(self):{}
+    def update_node(self, is_tunnel):
+        course_nodes[current_node].is_tunnel = is_tunnel
        #figure out later
 
     def next_node(self):
+        self.is_corner = 1
+
         # turn left if Berto is at a corner
         if self.current_node == 7:
             self.current_side = 'e'
@@ -59,6 +64,14 @@ class Grid(object):
         elif self.current_node == 8:
             self.current_side = 'd'
             self.is_searching = 0
+        elif self.current_node == 6:    #robot is right before corner
+            self.is_corner = 2
+        elif self.current_node == 42:
+            self.is_corner = 2
+        elif self.current_node == 44:
+            self.is_corner = 2
+        else:
+            self.is_corner = 0
 
         if self.current_side == 's':
             self.current_node = (self.current_node + 1)
@@ -69,14 +82,18 @@ class Grid(object):
         elif self.current_side == 'w' or self.current_side == 'd':
             self.current_node = (self.current_node - 7)
 
+        
+        #if robot is at a corner, logs 1. Otherwise, logs 0
+        return self.is_corner
 
+"""
 def main():
     number_of_nodes = 49
     course_nodes = Grid(number_of_nodes)
     course_nodes.search_perimeter()
 
-    for i in range(number_of_nodes):
-        print (course_nodes[i].node_number)
+   # for i in range(number_of_nodes):
+    #    print (course_nodes[i].node_number)
 
 if __name__ == "__main__":
-    main()
+    main()"""

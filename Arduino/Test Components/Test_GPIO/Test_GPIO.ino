@@ -1,3 +1,5 @@
+#include <SoftwareSerial.h>
+
 //[sourcecode language=”cpp”]
 byte number = 0;
 

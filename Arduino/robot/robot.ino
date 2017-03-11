@@ -1,4 +1,4 @@
-#include "LED13.h"
+//*#include "LED13.h"
 #include "Button.h"
 #include <SharpIR.h>
 #include <FastLED.h>
@@ -30,8 +30,8 @@ int incomingByte=0;
 
 
 int ascii2dec(int);
-LED13 led(12);
-LED13 led2(13);
+//*LED13 led(12);
+//*LED13 led2(13);
 //Button button(2);
 //Button button2(3);
 

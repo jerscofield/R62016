@@ -76,7 +76,6 @@ def GridSearch(course_nodes, motor):
 
 #def UpdateValues():
 
-
 #setup interrupts for stop push button
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(11, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -89,7 +88,6 @@ def main():
     left_motor = PORT_B
     right_motor = PORT_A
     motor = rotationMotorTest.MotorControls(left_motor, right_motor)
-
    
    # ser = serial.Serial('/dev/ttyACM1',9600)
   #  has_been_pressed = 0
@@ -111,17 +109,8 @@ def main():
    # BrickPiSetTimeout()  # (BrickPi's default is 250 msec (really meeses with motor reliability))
 	
     course_nodes.initialize()
-    print ("course_nodes[13].is_perimeter:", course_nodes[13].is_perimeter)
-
     PerimeterSearch(course_nodes, motor)
     GridSearch(course_nodes, motor)
-
-
-        #if turnType == 0:
-            #motor.move_bot('w')
-
-
-    #return_to_start
 
     while 1:
         time.sleep(.01)
@@ -130,15 +119,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-    """
-    def main():
-        number_of_nodes = 49
-        course_nodes = grid.Grid(number_of_nodes)
-        course_nodes.search_perimeter()
-
-        for i in range(number_of_nodes):
-            print (course_nodes[i].node_number)
-
-    if __name__ == "__main__":
-        main()
-       """

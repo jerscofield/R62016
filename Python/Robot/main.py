@@ -3,19 +3,19 @@ from __future__ import division
 #from binascii import hexlify
 
 import grid
-#$$$$$$$$$$$$$import rotationMotorTest
-#$$$$$$$$$$$$$$$$$$$$import RPi.GPIO as GPIO
+import rotationMotorTest
+import RPi.GPIO as GPIO
 import serial
 import time
-#$$$$$$$$$$$$$$$$$$import os
+import os
 
-#$$$$$$$$$$$$$$$from BrickPi import *  # import BrickPi.py file to use BrickPi operations
-#$$$$$$$$from MultiMotorDriving import *  # So can do precision motor rotations
+from BrickPi import *  # import BrickPi.py file to use BrickPi operations
+from MultiMotorDriving import *  # So can do precision motor rotations
 
 #function for shutdown pi when red button is pressed
-#$$$$$$$$$def Shutdown(channel):
-   #$$$$$$$$$ GPIO.cleanup()
-    #$$$$$$$$$$$$$os.system("sudo shutdown -h now")
+def Shutdown(channel):
+	GPIO.cleanup()
+	os.system("sudo shutdown -h now")
 
 
 #0 go straight
@@ -23,18 +23,18 @@ import time
 #2 stop
 #call motor object for controling the motor
 #perimeter search. will continue to run as long as the last node hasn't been reached
-def PerimeterSearch(course_nodes):
+def PerimeterSearch(course_nodes, motor):
     course_nodes.is_searching = 1
     #perimeter search. will continue to run as long as the last node hasn't been reached
     while course_nodes.is_searching == 1:
         print ("Perimeter Search", course_nodes.current_node)
 	#update sensor values
-        #$$$$$ser.write('G');
+        ser.write('G');
         #get EMF value from Arduino
-        #$$$$$$4EMF = ser.read()
+        EMF = ser.read()
         #print (EMF)
         
-        #$$$$$$ir_sensor = ser.read()
+        ir_sensor = ser.read()
         #print (ir_sensor)
         
 	action_to_take = course_nodes.next_node_perim()
@@ -47,7 +47,7 @@ def PerimeterSearch(course_nodes):
         elif action_to_take == 2:
             inp = 's'       #robot is at a corner. does a half turn onto the next node
             
-       #$$$$$$$$$ motor.move_bot(inp)  # Send command to move the bot
+        motor.move_bot(inp)  # Send command to move the bot
         time.sleep(.5)  # sleep for 10 ms
 
 #0 go straight
@@ -55,7 +55,7 @@ def PerimeterSearch(course_nodes):
 #2 turn left, go straight, turn left
 #3 turn right, go straight, turn right
 #4 stop
-def GridSearch(course_nodes):
+def GridSearch(course_nodes, motor):
     course_nodes.is_searching = 1
     while course_nodes.is_searching == 1:
    	print ("Grid Search", course_nodes.current_node, " self.orientation: ", course_nodes.orientation)
@@ -78,17 +78,17 @@ def GridSearch(course_nodes):
 
 
 #setup interrupts for stop push button
-#$$$$$$4GPIO.setmode(GPIO.BCM)
-#$$$$$$$$$$$$$$GPIO.setup(11, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-#$$$$$$$$$$GPIO.add_event_detect(11, GPIO.FALLING, callback = Shutdown, bouncetime = 2000)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(11, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(11, GPIO.FALLING, callback = Shutdown, bouncetime = 2000)
 
 
 def main():
     number_of_nodes = 100
     course_nodes = grid.Grid(number_of_nodes)
-    #$$$$$$$4left_motor = PORT_B
-    #$$$$$$$$$$right_motor = PORT_A
-    #$$$$$$$$$$motor = rotationMotorTest.MotorControls(left_motor, right_motor)
+    left_motor = PORT_B
+    right_motor = PORT_A
+    motor = rotationMotorTest.MotorControls(left_motor, right_motor)
 
    
    # ser = serial.Serial('/dev/ttyACM1',9600)
@@ -112,10 +112,9 @@ def main():
 	
     course_nodes.initialize()
     print ("course_nodes[13].is_perimeter:", course_nodes[13].is_perimeter)
-    PerimeterSearch(course_nodes)
-    #&&&&&&&&&&&77PerimeterSearch(course_nodes, motor)
-    #GridSearch(course_nodes, motor)
-    GridSearch(course_nodes)
+
+    PerimeterSearch(course_nodes, motor)
+    GridSearch(course_nodes, motor)
 
 
         #if turnType == 0:

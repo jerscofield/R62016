@@ -128,9 +128,18 @@ class MotorControls:
     # Move backward
     def back(self):
         self.movement(-630, -630, 100, 100)
+
     # Stop
     def stop(self):
         self.movement(0, 0, 100, 100)
+
+    # left IMU
+    def leftIMU(self):
+        self.movement(-1, 1, 100, 100)
+
+    # right IMU
+    def rightIMU(self):
+        self.movement(1, -1, 100, 100)
 
 
     # Move the simplebot depending on the command
@@ -181,25 +190,14 @@ class MotorControls:
         elif val == 'x':
             # cmd='x'
             self.back()
+        elif val == 'l':
+            #cmd = 'l'
+            self.leftIMU()
+        elif val == 'p':
+            #cmd = 'l'
+            self.rightIMU()
 
-"""
-def main():
-    BrickPiSetup()  # Setup the serial port for communication (***NB*** APP MUST BE RUN IN SUDO MODE ***NB***)
-    leftMotor = PORT_B
-    rightMotor = PORT_A
-    motors = [leftMotor, rightMotor]
-    BrickPi.MotorEnable[leftMotor] = 1  # Don't turn these off - set its speed to 0 to stop a motor
-    BrickPi.MotorEnable[rightMotor] = 1
-    BrickPiSetupSensors()  # Send the properties of sensors to BrickPi
-    BrickPi.Timeout = 30000  # So motors won't stop cause of lack of contact (30 seconds)
-    BrickPiSetTimeout()  # (BrickPi's default is 250 msec (really meeses with motor reliability))
-
-    while 1:
-        inp = str(raw_input())  # Take input from the terminal
-        move_bot(motors, leftMotor, rightMotor, inp)  # Send command to move the bot
-
-        time.sleep(.01)  # sleep for 10 ms
-
-if __name__ == "__main__":
-    main()
-"""
+    #determine amount by which motor should move
+    def move_bot_amount(self, amount):
+        newAmount = amount * 210
+        self.movement(newAmount, newAmount, 100, 100)

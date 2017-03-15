@@ -5,9 +5,9 @@ class ObstacleNode:
     def __init__(self, node_number):
         self.die_value = 0
         self.is_perimeter = False
-	self.is_inner_perimeter = False
+        self.is_inner_perimeter = False
         self.is_corner = False
-	self.is_inner_corner = False
+        self.is_inner_corner = False
         self.has_been_here = False
         self.which_side = '*'
         #self.which_quadrant
@@ -45,26 +45,30 @@ class Grid(object):
     def get_value(self,which_node):
         return self.grid[which_node].node_number, self.grid[which_node].which_side
 
-
+	#initialize grid values
     def initialize(self):
-	self.orientation = 'e'
-        for i in range(50):
-	    if i%7 == 6 or i%7 == 2:
-		self.grid[i].is_inner_perimeter = True
-            if i%7 == 0 or i%7 == 1 or i > 42 or i < 8:
-                self.grid[i].is_perimeter = True
-                self.grid[i].cache_present = 1
-		self.grid[i].is_inner_perimeter = False
-            if i == 1 or i == 7 or i == 43 or i == 49:
-                self.grid[i].is_corner = True
-                self.grid[i].cache_present = 0
-	    if i == 9 or i == 13 or i == 41 or i == 37:
-		self.grid[i].is_inner_corner = 1
-		self.grid[i].is_inner_perimeter = True
+		self.orientation = 'e'
+		for i in range(self.number_of_nodes + 1):
+			#initialize row and column numbers
+			self.grid[i].col_number = (i - 1)%7 + 1
+			self.grid[i].row_number = (i - 1) / 7 + 1
+
+			if i%7 == 6 or i%7 == 2:
+				self.grid[i].is_inner_perimeter = True
+			if i%7 == 0 or i%7 == 1 or i > 42 or i < 8:
+				self.grid[i].is_perimeter = True
+				self.grid[i].cache_present = 1
+				self.grid[i].is_inner_perimeter = False
+			if i == 1 or i == 7 or i == 43 or i == 49:
+				self.grid[i].is_corner = True
+				self.grid[i].cache_present = 0
+			if i == 9 or i == 13 or i == 41 or i == 37:
+				self.grid[i].is_inner_corner = 1
+				self.grid[i].is_inner_perimeter = True
 
                 
     def update_node(self, is_tunnel):
-        course_nodes[self.current_node].is_tunnel = is_tunnel
+        self.grid[self.current_node].is_tunnel = is_tunnel
        #figure out later
 
     #turn types:

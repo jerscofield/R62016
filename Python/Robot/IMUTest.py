@@ -18,12 +18,43 @@ import math
 #from BrickPi import *  # import BrickPi.py file to use BrickPi operations
 #from MultiMotorDriving import *  # So can do precision motor rotations
 
+#IMU
+from Adafruit_BNO055 import BNO055
 
-#initialize motor
+#initialize motor and IMU
 # left_motor = PORT_B
 # right_motor = PORT_A
 # motor = rotationMotorTest.MotorControls(left_motor, right_motor)
+bno = BNO055.BNO055(serial_port='/dev/ttyAMA0', rst=1
 
+
+# more IMU stuff
+# Enable verbose debug logging if -v is passed as a parameter.
+if len(sys.argv) == 2 and sys.argv[1].lower() == '-v':
+    logging.basicConfig(level=logging.DEBUG)
+
+# Initialize the BNO055 and stop if something went wrong.
+if not bno.begin():
+    raise RuntimeError('Failed to initialize BNO055! Is the sensor connected?')
+
+# Print system status and self test result.
+status, self_test, error = bno.get_system_status()
+print('System status: {0}'.format(status))
+print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
+# Print out an error if system status is in error mode.
+if status == 0x01:
+    print('System error: {0}'.format(error))
+    print('See datasheet section 4.3.59 for the meaning.')
+
+# Print BNO055 software revision and other diagnostic data.
+sw, bl, accel, mag, gyro = bno.get_revision()
+print('Software version:   {0}'.format(sw))
+print('Bootloader version: {0}'.format(bl))
+print('Accelerometer ID:   0x{0:02X}'.format(accel))
+print('Magnetometer ID:    0x{0:02X}'.format(mag))
+print('Gyroscope ID:       0x{0:02X}\n'.format(gyro))
+
+print('Reading BNO055 data, press Ctrl-C to quit...')
 
 
 
@@ -31,6 +62,86 @@ import math
 #def Shutdown(channel):
 #	GPIO.cleanup()
 #	os.system("sudo shutdown -h now")
+
+
+#p: left IMU turn
+#l: right IMU turn
+#m: go straight
+def TurnLeft():
+    heading, roll, pitch = bno.read_euler()
+
+    #motor will continue to turn as long as the IMU is does not recognize a whole turn
+    while abs(heading) < 90:
+        # motor.move_bot('p')  # Send command to move the bot
+        heading, roll, pitch = bno.read_euler()
+
+    #recalibrate IMU
+
+
+# p: use IMU to turn right
+# l: right IMU turn
+#m: go straight
+def TurnRight():
+    heading, roll, pitch = bno.read_euler()
+
+    #motor will continue to turn as long as the IMU is does not recognize a whole turn
+    while abs(heading) < 90:
+        # motor.move_bot('p')  # Send command to move the bot
+        heading, roll, pitch = bno.read_euler()
+
+    # recalibrate IMU
+
+
+# p: use IMU to turn right
+# l: right IMU turn
+# m: go straight
+def Turn180():
+    heading, roll, pitch = bno.read_euler()
+
+    # motor will continue to turn as long as the IMU is does not recognize a whole turn
+    while abs(heading) < 180:
+        # motor.move_bot('p')  # Send command to move the bot
+        heading, roll, pitch = bno.read_euler()
+
+    # recalibrate IMU
+
+def TurnDegrees(heading1):
+
+    while heading1 > 0:
+
+
+
+        heading1 = heading2
+
+
+# p: use IMU to turn right
+# l: right IMU turn
+#m: go straight 3 inches
+def GoForward():
+    #reset IMU
+    # three different movements make the distance of one node
+    motor.mov_bot_amount(1)
+
+    for i in range(2):
+        heading, roll, pitch = bno.read_euler()
+        heading = abs(heading)
+
+        #determine length to drive
+        widthOffInit = math.sin(heading)
+        lengthOffPost = 2 - math.cos(heading)
+        angleToTurn = math.arctan(widthOffInit/lengthOffPost)
+        lengthToDrive = widthOffInit / (math.sin(angleToTurn))
+
+        TurnDegrees(heading + angleToTurn)
+
+        motor.mov_bot_amount(lengthToDrive)
+        #straighten up -- will need to think about this code a bit
+
+
+    # recalibrate IMU
+
+
+
 
 
 #0 go straight

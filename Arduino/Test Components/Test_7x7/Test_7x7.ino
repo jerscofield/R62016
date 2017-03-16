@@ -40,7 +40,8 @@ void loop()
   
   for(int i = 0; i < 63; i++){
 
-    leds[ledSpot[i]] = CRGB::Red;
+    //leds[ledSpot[i]] = CRGB::Pink;
+    leds[i] = CRGB::Pink;
     FastLED.show();
     FastLED.delay(1000 / UPDATES_PER_SECOND);
   }

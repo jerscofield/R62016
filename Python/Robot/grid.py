@@ -90,7 +90,7 @@ class Grid(object):
 	    self.orientation = self.change_orientation('l')
             turn_type = 6 #go straight 1, then turn left. Make sure to update orientation
 	elif self.current_node == 15:
-            turn_type = 1 #go stright 1, then turn left. Make sure to update orientation
+            turn_type = 6 #go stright 1, then turn left. Make sure to update orientation
 	    self.is_searching = False
             self.current_node = self.current_node + self.increment_node()
 	    self.orientation = self.change_orientation('l')

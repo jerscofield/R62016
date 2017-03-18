@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import math
 
 class ObstacleNode:
     def __init__(self, node_number):
@@ -13,8 +14,8 @@ class ObstacleNode:
         #self.which_quadrant
         self.node_number = node_number
         self.is_tunnel = 0
-        self.row_number = 0
-        self.col_number = 0
+        self.row_number = 1
+        self.col_number = 1
         self.cache_present = 0
         #put all of the variables in a data object
 
@@ -28,10 +29,12 @@ class Grid(object):
         self.number_of_nodes = number_of_nodes
         self.orientation = 'e'
         self.grid = []
+        self.avoidingObstacle = False
         for i in range(number_of_nodes + 1):
             self.grid.append(ObstacleNode(i))
             #Determine what direction we are facing
             #if e  +1,  if n +7,  if s -7, if w -1.
+
 
 
     def __getitem__(self,index):
@@ -51,7 +54,7 @@ class Grid(object):
 		for i in range(self.number_of_nodes + 1):
 			#initialize row and column numbers
 			self.grid[i].col_number = (i - 1)%7 + 1
-			self.grid[i].row_number = (i - 1) / 7 + 1
+			self.grid[i].row_number = math.floor((i - 1) / 7 + 1)
 
 			if i%7 == 6 or i%7 == 2:
 				self.grid[i].is_inner_perimeter = True
@@ -86,17 +89,17 @@ class Grid(object):
 	elif self.current_node == 15:
             turn_type = 1 #go stright 1, then turn left. Make sure to update orientation
 	    self.is_searching = False
-            self.current_node = self.current_node + self.increment_node() 
+            self.current_node = self.current_node + self.increment_node()
 	    self.orientation = self.change_orientation('l')
 	else:
 	    turn_type = 0	#go straight 1
-            self.current_node = self.current_node + self.increment_node()	    
+            self.current_node = self.current_node + self.increment_node()
 	return turn_type
 
 
     def increment_node(self):
         if self.orientation == 's':
-  	    increment = int(-7)
+  	    	increment = int(-7)
         elif self.orientation == 'e':
             increment = int(1)
         elif self.orientation == 'n':
@@ -165,30 +168,32 @@ class Grid(object):
     #4: turn 180 degrees
     def next_node_grid(self):
         #if we are at the final node in the search
-	
-        if self.current_node == 41:
-            self.is_searching = False
-            turnType = 3
-	#if we are at the first node in the search
-        elif self.current_node == 8:
-            self.current_node = self.current_node + self.increment_node()
-            turnType = 0
-	#if we are at or right before the inner perimeter, on east side
-	elif (self.grid[self.current_node + 2].is_perimeter == True and self.orientation == 'e') or (self.grid[self.current_node + 1].is_perimeter == True and self.orientation == 'n'):
-	    print ("We got to this point!!!")
-	    self.current_node = self.current_node + self.increment_node()
-	    self.orientation = self.change_orientation('l')
-	    turnType = 1
-	#if we are at or right before the inner perimeter, on west side
-	elif (self.grid[self.current_node - 2].is_perimeter == True and self.orientation == 'w') or (self.grid[self.current_node - 1].is_perimeter == True and self.orientation == 'n'):
-	    self.current_node = self.current_node + self.increment_node()
-	    self.orientation = self.change_orientation('r')
-            turnType = 2
-	#no turns ahead, go straight
-	else:
-	    self.current_node = self.current_node + self.increment_node()
-	    turnType = 0
-
-	return turnType
+		if self.current_node == 41:
+			self.is_searching = False
+			turnType = 3
+		elif self.current_node == 8:
+			self.current_node += self.increment_node()
+			turnType = 0
+		elif (self.grid[self.current_node + 1].is_perimeter == True and self.orientation == 'e') or (self.grid[self.current_node ].col_number == 7 and self.orientation == 'n'):
+			self.current_node += self.increment_node()
+			self.orientation = self.change_orientation('l')
+			turnType = 1
+		# if we are at or right before the inner perimeter, on west side
+		elif (self.grid[self.current_node - 1].is_perimeter == True and self.orientation == 'w') or (self.grid[self.current_node].col_number == 1 and self.orientation == 'n'):
+			self.current_node += self.increment_node()
+			self.orientation = self.change_orientation('r')
+			turnType = 2
+		#no turns ahead, go straight
+		else:
+			self.current_node += self.increment_node()
+			turnType = 0
+		return turnType
 
     #def return_to_start(self):
+
+
+
+
+
+
+

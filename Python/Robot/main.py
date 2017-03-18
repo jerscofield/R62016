@@ -38,20 +38,20 @@ import math
 #2 stop
 #call motor object for controling the motor
 #perimeter search. will continue to run as long as the last node hasn't been reached
-def PerimeterSearch(course_nodes, motor):
+def PerimeterSearch(course_nodes):
     course_nodes.is_searching = 1
     #perimeter search. will continue to run as long as the last node hasn't been reached
     while course_nodes.is_searching == 1:
         print ("Perimeter Search", course_nodes.current_node)
 
 	    #update sensor values
-        ser.write('G');
+     #   ser.write('G');
 
         #get EMF value from Arduino
-        EMF = ser.read()
+      #  EMF = ser.read()
         #print (EMF)
         
-        ir_sensor = ser.read()
+       # ir_sensor = ser.read()
         #print (ir_sensor)
         
 	action_to_take = course_nodes.next_node_perim()
@@ -64,7 +64,7 @@ def PerimeterSearch(course_nodes, motor):
         elif action_to_take == 2:
             inp = 's'       #robot is at a corner. does a half turn onto the next node
             
-        motor.move_bot(inp)  # Send command to move the bot
+      #  motor.move_bot(inp)  # Send command to move the bot
         time.sleep(.5)  # sleep for 10 ms
 
 #0 go straight
@@ -72,11 +72,13 @@ def PerimeterSearch(course_nodes, motor):
 #2 turn left, go straight, turn left
 #3 turn right, go straight, turn right
 #4 stop
-def GridSearch(course_nodes, motor):
+def GridSearch(course_nodes):
     course_nodes.is_searching = 1
     while course_nodes.is_searching == 1:
-   	print ("Grid Search", course_nodes.current_node, " self.orientation: ", course_nodes.orientation)
+    	print ("Grid Search", course_nodes.current_node)
 	#update sensor values
+        #if objInFront:
+            #obstacleAvoidance(course_nodes,motor)
         action_to_take = course_nodes.next_node_grid()
         if action_to_take == 0:
             inp = 'w'       #robot isn't at a corner. go straight.
@@ -90,6 +92,51 @@ def GridSearch(course_nodes, motor):
             inp = 't'       #stop
        # motor.move_bot(inp)  # Send command to move the bot
         time.sleep(.5)  # sleep for 10 ms
+
+
+#0 go straight
+#1 turn left, go straight
+#2 turn left, go straight, turn left
+#3 turn right, go straight, turn right
+#4 stop
+#5 turn right
+#6 turn left
+#def obstacleAvoidance(course_nodes, motor):
+ #   startRow = course_nodes[course_nodes.current_node].row_number
+  #  startOrientation = course_nodes.orientation
+   # course_nodes.avoidingObstacle = True
+
+
+ #   if course_nodes[course_nodes.current_node].row_number % 2 == 0:
+#        motor.move_bot('a') #turn left
+  #      changeOrientation()
+
+     #   while course_nodes.avoidingObstacle == True:
+   #         evaluateNode() #determine if there are any obstacles to the right, in front of, or left of the robot
+    #        obstacleAvoidance('e', startRow)
+
+      #  turnDirection(direction)
+       # changeOrientation()
+       # motor.move_bot('w') #go straight
+            #change current node
+
+    #if course_nodes[course_nodes.current_node].row_number % 2 == 1:
+     #   motor.move_bot('d') #turn right
+      #  changeOrientation()
+
+       # while course_nodes.avoidingObstacle:
+            #will need to put a dictionary or something in here to show what values we get when we use the IR sensors
+        #    evaluateNode() #determine if there are any obstacles to the right, in front of, or left of the robot
+         #   obstacleAvoidance('o', startRow)
+
+          #  turnDirection(direction)
+           # changeOrientation()
+            #straight()
+            #change current node
+
+    #should maybe create a separate function for this inside the grid class.
+    #reorient()
+
 
 #def UpdateValues():
 
@@ -127,11 +174,15 @@ def main():
    # BrickPiSetTimeout()  # (BrickPi's default is 250 msec (really meeses with motor reliability))
 	
     course_nodes.initialize()
-    print (course_nodes.current_node)
-    for i in range(49):
-	print("Node Number", i, " Node Column", course_nodes[i].col_number, " Node Row", course_nodes[i].row_number)
+  #  print (course_nodes.current_node)
+  #  for i in range(49):
+#	print("Node Number", i, " Node Column", course_nodes[i].col_number, " Node Row", course_nodes[i].row_number)
     #PerimeterSearch(course_nodes, motor)
     #GridSearch(course_nodes, motor)
+
+
+    PerimeterSearch(course_nodes)
+    GridSearch(course_nodes)
 
     while 1:
         time.sleep(.01)

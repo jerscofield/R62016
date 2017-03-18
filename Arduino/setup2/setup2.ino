@@ -41,17 +41,9 @@ void setup()
   Serial.begin(9600);
   //tester LED
   pinMode(13, OUTPUT); 
- // pinMode(buttonPin, INPUT);
   pinMode(led_pin, OUTPUT);
   pinMode(but_pin, INPUT_PULLUP);
   pinMode (ir, INPUT);
-  
-  
-  //wait for the button to be pressed (we still need to buy an inverted schmitt trigger)
-  while (buttonState != HIGH) {
-    //  Serial.write("can't start car until button is pressed!");
-      buttonState = digitalRead(buttonPin);
-  };
 }
 
 /* Show the led_state on the internal LED, it is changed in the ISR */
@@ -68,50 +60,21 @@ void loop()
   while(Serial.available() == 0){}
 
    number = Serial.read();
-   if (number == 'd')
-     Serial.write('z');
-   //Serial.write(number);
- //  Serial.print("character recieved");
-  // Serial.print(number);
-//   if (number != 'd')
-  //   while(1);
-   //get and send values to the pi
-   boolean emf_values = isEMF();
-   boolean obj_in_front = objInFront();
    
-   //do I eventually want to just make this all println()?
-   if(isEMF())
-     Serial.write('E');
-   else
-     Serial.write('F');
-     
-   //checks for object in front of the IR Sensor
-   if(objInFront())
-     Serial.write('G');
-   else
-     Serial.write('H');
-     
-   //checks for object on left of the IR Sensor
-   if(objOnLeft())
-     Serial.write('G');
-   else
-     Serial.write('H');
-     
-   //checks for object on left of the IR Sensor
-   if(objOnLeft())
-     Serial.write('G');
-   else
-     Serial.write('H');
-     
-   //get node number from Pi
-   number = Serial.read();
    
-   //get node type from Pi
-   node_type = Serial.read();
-   
-   //
-   //
-   //update the 7x7 grid
+   switch(number):{
+     case 'a': // getCapacitance();
+                front = objInFront();
+                Serial.write(front);
+                break;
+     case 'b': right = objOnRight();
+               front = objInFront();
+               left = objOnLeft();
+               Serial.write(right);
+               Serial.write(front);
+               Serial.write(left);
+               break;
+     //put numbers on grids case 'c': put numbers on grids
 }
 
 
@@ -127,36 +90,35 @@ boolean isEMF(){
 //checks for obstacle in front of the robot
 //I think that this sensor only detects within 10 t0 80 CM
 //should be able to check 3 blocks
-boolean objInFront(){
+char objInFront(){
   int dis = sharp1.distance();
   
-  if(dis > 100)
-    return true;
+  if(dis > 75)
+    return '0';  //there is no obstacle in front of sensor
    else 
-     return false;
+     return '1';  //there is an obstacle in front of sensor
 }
 
 ////checks for obstacle in front of the robot
-boolean objOnLeft(){
+char objOnLeft(){
   int dis = sharp2.distance();
   
-  if(dis > 100)
-    return true;
+  if(dis > 75)
+    return '0';  //there is no obstacle in front of sensor
    else 
-     return false;
+     return '1';  //there is an obstacle in front of sensor
 }
 
 //checks for obstacle in front of the robot
-/*
-boolean objOnRight(){
+char objOnRight(){
   int dis = sharp3.distance();
   
-  if(dis > 100)
-    return true;
+  if(dis > 75)
+    return '0';  //there is no obstacle in front of sensor
    else 
-     return false;
+     return '1';  //there is an obstacle in front of sensor
 }
-*/
+
 
 
 

@@ -133,13 +133,29 @@ class MotorControls:
     def stop(self):
         self.movement(0, 0, 100, 100)
 
-    # left IMU
-    def leftIMU(self):
-        self.movement(-1, 1, 100, 100)
+    #turn left, then go straight
+    def leftStraight(self):
+        self.left()
+        self.straight()
 
-    # right IMU
-    def rightIMU(self):
-        self.movement(1, -1, 100, 100)
+    #turn left, straight, left
+    def leftStraightLeft(self):
+        self.leftStraight()
+        self.left()
+
+    #turn right, then go straight
+    def rightStraight(self):
+        self.right()
+        self.straight()
+
+    #turn right, go straight, turn right
+    def rightStraightRight(self):
+        self.rightStraight()
+        self.right()
+
+    def fullTurn(self):
+        self.right()
+        self.right()
 
 
     # Move the simplebot depending on the command
@@ -172,9 +188,9 @@ class MotorControls:
         elif val=='j':
                 #cmd='c'
             self.rightHalfArc2()
-        elif val=='n':
+        #elif val=='n':
                 #cmd='c'
-            self.leftHalfArc1()
+         #   self.leftHalfArc1()
         elif val=='m':
                 #cmd='c'
             self.leftHalfArc2()
@@ -192,12 +208,17 @@ class MotorControls:
             self.back()
         elif val == 'l':
             #cmd = 'l'
-            self.leftIMU()
+            self.leftStraight()
         elif val == 'p':
             #cmd = 'l'
-            self.rightIMU()
-
-    #determine amount by which motor should move
-    def move_bot_amount(self, amount):
-        newAmount = amount * 210
-        self.movement(newAmount, newAmount, 100, 100)
+            self.rightStraight()
+        elif val == 'n':
+            self.leftStraightLeft()
+        elif val == 'b':
+            self.rightStraightRight()
+        elif val == 'k':
+            self.fullTurn()
+        elif val == 'v':
+            self.straightRight()
+        elif val == '.':
+            self.straightLeft()

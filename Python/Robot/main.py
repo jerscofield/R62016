@@ -1,28 +1,30 @@
 from __future__ import print_function
 from __future__ import division
-#from binascii import hexlify
 
 import grid
-#import rotationMotorTest
+import rotationMotorTest
 #import RPi.GPIO as GPIO
 import serial
 import time
 import os
 
 #IMU Files
-import logging
-import sys
-import math
+#import logging
+#import sys
+#import math
 
 #motor control
-#from BrickPi import *  # import BrickPi.py file to use BrickPi operations
-#from MultiMotorDriving import *  # So can do precision motor rotations
+from BrickPi import *  # import BrickPi.py file to use BrickPi operations
+from MultiMotorDriving import *  # So can do precision motor rotations
 
 
 #initialize motor
-# left_motor = PORT_B
-# right_motor = PORT_A
-# motor = rotationMotorTest.MotorControls(left_motor, right_motor)
+left_motor = PORT_B
+right_motor = PORT_A
+motor = rotationMotorTest.MotorControls(left_motor, right_motor)
+
+#initialize serial communication
+ser = serial.Serial('/dev/ttyACM1',9600)
 
 
 
@@ -34,9 +36,16 @@ import math
 
 
 #0 go straight
-#1 go straight, turn left
-#2 stop
-#call motor object for controling the motor
+#1 turn left, go straight
+#2 turn left, go straight, turn left
+#3 turn right, go straight, turn right
+#4 stop
+#5 straight, right
+#6 straight, left
+#7 right
+#8 left
+
+#call motor object for controlling the motor
 #perimeter search. will continue to run as long as the last node hasn't been reached
 def PerimeterSearch(course_nodes):
     course_nodes.is_searching = 1
@@ -60,7 +69,7 @@ def PerimeterSearch(course_nodes):
         if action_to_take == 0:
             inp = 'w'       #robot isn't at a corner. go straight.
         elif action_to_take == 1:
-            inp = 'i'       #robot is right before the corner. go straight, turn left (will need to change code to do this)
+            inp = 'l'       #robot is right before the corner. go straight, turn left (will need to change code to do this)
         elif action_to_take == 2:
             inp = 's'       #robot is at a corner. does a half turn onto the next node
             
@@ -72,24 +81,31 @@ def PerimeterSearch(course_nodes):
 #2 turn left, go straight, turn left
 #3 turn right, go straight, turn right
 #4 stop
+#5 straight, right
+#6 straight, left
+#7 right
+#8 left
 def GridSearch(course_nodes):
     course_nodes.is_searching = 1
     while course_nodes.is_searching == 1:
     	print ("Grid Search", course_nodes.current_node)
-	#update sensor values
-        #if objInFront:
-            #obstacleAvoidance(course_nodes,motor)
+
+        ser.write('a')              #get node values from the Arduino
+        objInFront = ser.read()     #check if there are any obstacles in front of the robot
+        if objInFront == '1':       #if there are any obstacles in front of the robot, avoid the obstacle
+            obstacleAvoidance(course_nodes,motor)
+
         action_to_take = course_nodes.next_node_grid()
         if action_to_take == 0:
             inp = 'w'       #robot isn't at a corner. go straight.
         elif action_to_take == 1:
-            inp = 'i'       #robot is at beginning of perimeter search. needs to turn into grid
+            inp = 'l'       #robot is at beginning of perimeter search. needs to turn into grid
         elif action_to_take == 2:
-            inp = 'j'       #robot is at easternmost inner grid
+            inp = 'n'       #robot is at easternmost inner grid
         elif action_to_take == 3:
-            inp = 's'       #robot is at westernmost inner grid
+            inp = 'b'       #robot is at final node. stop
         elif action_to_take == 4:
-            inp = 't'       #stop
+            inp = 's'       #turn 180 degrees
        # motor.move_bot(inp)  # Send command to move the bot
         time.sleep(.5)  # sleep for 10 ms
 
@@ -99,44 +115,50 @@ def GridSearch(course_nodes):
 #2 turn left, go straight, turn left
 #3 turn right, go straight, turn right
 #4 stop
-#5 turn right
-#6 turn left
-#def obstacleAvoidance(course_nodes, motor):
- #   startRow = course_nodes[course_nodes.current_node].row_number
-  #  startOrientation = course_nodes.orientation
-   # course_nodes.avoidingObstacle = True
+#5 straight, right
+#6 straight, left
+#7 right
+#8 left
+def obstacleAvoidance(course_nodes, motor):
+
+     startRow = course_nodes[course_nodes.current_node].row_number
+     startOrientation = course_nodes.orientation
+     course_nodes.avoidingObstacle = True
 
 
- #   if course_nodes[course_nodes.current_node].row_number % 2 == 0:
-#        motor.move_bot('a') #turn left
-  #      changeOrientation()
+     if course_nodes[course_nodes.current_node].row_number % 2 == 0:
+        motor.move_bot('a') #turn left
+        course_nodes.change_orientation('l')
 
-     #   while course_nodes.avoidingObstacle == True:
-   #         evaluateNode() #determine if there are any obstacles to the right, in front of, or left of the robot
-    #        obstacleAvoidance('e', startRow)
-
-      #  turnDirection(direction)
-       # changeOrientation()
-       # motor.move_bot('w') #go straight
+        while course_nodes.avoidingObstacle == True:
+            course_nodes.obstacleAvoidance('e', startRow, evaluateNode())
+            turnDirection(direction)
+            course_nodes.change_orientation('r')
+            motor.move_bot('w') #go straight
             #change current node
 
-    #if course_nodes[course_nodes.current_node].row_number % 2 == 1:
-     #   motor.move_bot('d') #turn right
-      #  changeOrientation()
+    if course_nodes[course_nodes.current_node].row_number % 2 == 1:
+        motor.move_bot('d') #turn right
+        course_nodes.change_orientation('r')
 
-       # while course_nodes.avoidingObstacle:
+        while course_nodes.avoidingObstacle:
             #will need to put a dictionary or something in here to show what values we get when we use the IR sensors
-        #    evaluateNode() #determine if there are any obstacles to the right, in front of, or left of the robot
-         #   obstacleAvoidance('o', startRow)
-
-          #  turnDirection(direction)
-           # changeOrientation()
-            #straight()
-            #change current node
+            course_nodes.obstacleAvoidance('o', startRow, evaluateNode())
+            turnDirection(direction)
+            course_nodes.change_orientation('l')
+            motor.move_bot('w')
+            change current node
 
     #should maybe create a separate function for this inside the grid class.
     #reorient()
 
+def evaluateNode():
+    ser.write('b')  # get IR sensor values from the Arduino
+    sensor1 = ser.read()
+    sensor2 = ser.read()
+    sensor3 = ser.read()
+    values = {1: sensor1, 2: sensor2, 3: sensor3}
+    return values
 
 #def UpdateValues():
 
@@ -182,7 +204,7 @@ def main():
 
 
     PerimeterSearch(course_nodes)
-    GridSearch(course_nodes)
+   # GridSearch(course_nodes)
 
     while 1:
         time.sleep(.01)

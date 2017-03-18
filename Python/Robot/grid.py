@@ -74,18 +74,21 @@ class Grid(object):
         self.grid[self.current_node].is_tunnel = is_tunnel
        #figure out later
 
-    #turn types:
-    #0: go straight
-    #1: go straight, turn left
-    #2: go straight, turn left
-    #3: stop
-    #4: turn 180 degrees
+	# 0 go straight
+	# 1 turn left, go straight
+	# 2 turn left, go straight, turn left
+	# 3 turn right, go straight, turn right
+	# 4 stop
+	# 5 straight, right
+	# 6 straight, left
+	# 7 right
+	# 8 left
     def next_node_perim(self):
 	#we are right before the corner
         if self.grid[self.current_node + self.increment_node()].is_corner == True:
 	    self.current_node = self.current_node + self.increment_node()
 	    self.orientation = self.change_orientation('l')
-            turn_type = 1 #go stright 1, then turn left. Make sure to update orientation
+            turn_type = 6 #go straight 1, then turn left. Make sure to update orientation
 	elif self.current_node == 15:
             turn_type = 1 #go stright 1, then turn left. Make sure to update orientation
 	    self.is_searching = False
@@ -160,12 +163,18 @@ class Grid(object):
 
         # if self.current.node%7== (0 | 1)  #  modulus equals 1 or 0.
 
-    #turn types:
-    #0: go straight
-    #1: go straight, turn left
-    #2: go straight, turn right
-    #3: stop
-    #4: turn 180 degrees
+
+	# 0 go straight
+	# 1 turn left, go straight
+	# 2 turn left, go straight, turn left
+	# 3 turn right, go straight, turn right
+	# 4 stop
+	# 5 straight, right
+	# 6 straight, left
+	# 7 right
+	# 8 left
+	# 9 180 degree turn
+
     def next_node_grid(self):
         #if we are at the final node in the search
 		if self.current_node == 41:
@@ -183,13 +192,54 @@ class Grid(object):
 			self.current_node += self.increment_node()
 			self.orientation = self.change_orientation('r')
 			turnType = 2
-		#no turns ahead, go straight
+		#no turns ahead, go straight			# go straight
+
 		else:
 			self.current_node += self.increment_node()
 			turnType = 0
 		return turnType
 
     #def return_to_start(self):
+
+
+	def obstacleAvoidance(self, rowType, startRow, sensorValues):
+		if rowType == 'e':
+			# if there is no obstacle to the right
+			rightObstacle = sensorValues.get(1)
+			if rightObstacle == '0':	#if there is no obstacle to the right of the robot
+			direction = 'r'
+			self.change_orientation('r')
+			# go straight
+			# change current node (increment_node)
+			elif not middleObstacle:
+			direction = 's'
+			# go straight
+			# change current node
+			elif not leftObstacle:
+			direction = 'l'
+			self.change_orientation('l')
+		# go straight
+		# change current node
+		elif rowType == 'o':
+			#	if not leftObstacle:
+			direction = 'l'
+			self.change_orientation('l')
+			# go straight
+			# change current node
+			#	elif not middleObstacle:
+			direction = 's'
+			# go straight
+			# change current node
+			#	elif not rightObstacle:
+			direction = 'r'
+			self.change_orientation('r')
+		# go straight
+		# change current node
+
+		if self[self.current_node].row_number == startRow and (self[self.current_node].tr6aversed == False):
+			self.avoidingObstacle = False
+
+		return direction
 
 
 

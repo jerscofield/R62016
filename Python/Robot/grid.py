@@ -202,44 +202,44 @@ class Grid(object):
     #def return_to_start(self):
 
 
-	def obstacleAvoidance(self, rowType, startRow, sensorValues):
-		if rowType == 'e':
-			# if there is no obstacle to the right
-			rightObstacle = sensorValues.get(1)
-			if rightObstacle == '0':	#if there is no obstacle to the right of the robot
-			direction = 'r'
-			self.change_orientation('r')
+#	def obstacleAvoidance(self, rowType, startRow, sensorValues):
+#		if rowType == 'e':
+#			# if there is no obstacle to the right
+#			rightObstacle = sensorValues.get(1)
+#			if rightObstacle == '0':	#if there is no obstacle to the right of the robot
+#			direction = 'r'
+#			self.change_orientation('r')
 			# go straight
 			# change current node (increment_node)
-			elif not middleObstacle:
-			direction = 's'
+#			elif not middleObstacle:
+		#	direction = 's'
 			# go straight
 			# change current node
-			elif not leftObstacle:
-			direction = 'l'
-			self.change_orientation('l')
+#			elif not leftObstacle:
+		#	direction = 'l'
+#			self.change_orientation('l')
 		# go straight
 		# change current node
-		elif rowType == 'o':
+#		elif rowType == 'o':
 			#	if not leftObstacle:
-			direction = 'l'
-			self.change_orientation('l')
+#			direction = 'l'
+#			self.change_orientation('l')
 			# go straight
 			# change current node
 			#	elif not middleObstacle:
-			direction = 's'
+#			direction = 's'
 			# go straight
 			# change current node
 			#	elif not rightObstacle:
-			direction = 'r'
-			self.change_orientation('r')
+		#	direction = 'r'
+#			self.change_orientation('r')
 		# go straight
 		# change current node
 
-		if self[self.current_node].row_number == startRow and (self[self.current_node].tr6aversed == False):
-			self.avoidingObstacle = False
-
-		return direction
+#		if self[self.current_node].row_number == startRow and (self[self.current_node].tr6aversed == False):
+#			self.avoidingObstacle = False
+#
+#		return direction
 
 
 

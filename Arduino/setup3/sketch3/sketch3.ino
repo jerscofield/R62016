@@ -20,13 +20,8 @@ TBlendType    currentBlending;
 extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
-const uint8_t ledSpot[] = {14, 6, 5, 4, 3, 2, 1, 0, 14, 13, 12, 11, 10, 9, 8, 22, 21, 20, 19, 18, 17, 16, 30, 29, 28, 27, 26, 25, 24, 38, 37, 36, 35, 34, 33, 32, 46, 45, 44, 43, 42, 41, 40, 54, 53, 52, 51, 50, 49, 48, 55};
-//const uint8_t ledSpot[] = {14, 6, 5, 4, 3, 2, 1, 0, 14, 13, 12, 11, 10, 9, 8, 21, 20, 20, 23, 18, 17, 16, 18, 23, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 39, 40, 42, 43, 44, 45, 46, 47, 48};
-//const uint8_t ledSpot[] = {0, 8, 6, 5, 4, 3, 2, 1, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 19, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 53, 54};
-  int spot = 0;
-  
+const uint8_t ledSpot[] = {0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 53, 54};
 int convertStr2Int(char digit);
-void ledValues();
 
 void setup() {
     Serial.begin(9600);
@@ -39,18 +34,20 @@ void setup() {
     
 }
 
+
 void loop()
 {
   
   char front;
   char right;
   char left;
- 
-        
-        
-  //   for (int i = 1; i < 50; i++)
-   //     leds[ledSpot[i]] = CRGB::Blue;
-    // FastLED.show();
+  int number1Int;
+  int number2Int;
+  int number;
+  
+  char gridType;
+  char number1;
+  char number2;
   // digitalWrite(led_pin, led_state);    
   //look for serial from the pi
   //get the values from the sensors
@@ -59,64 +56,40 @@ void loop()
   
   //wait until Pi is ready to communicate
   if (Serial.available() > 0){
-  char number = Serial.read();
+  char data2Get = Serial.read();
      
-  switch(number){
+  switch(data2Get){
     case 'a':  Serial.print("coo' coo'!");
                break;
-    case 'b': ledValues();
+    case 'b': 
               break;
-    case 'c': 
+    case 'c': number1 = Serial.read();
+              number2 = Serial.read();
+              gridType = Serial.read();
+              
+              number1Int = convertStr2Int(number1);
+              number2Int = convertStr2Int(number2);
+              number = 10*number1Int + number2Int;
+                                                        
+              switch(gridType){
+                if (gridType == 'r')
+                  leds[ledSpot[number]] = CRGB::Red;
+                else if (gridType == 'b')
+                  leds[ledSpot[number]] = CRGB::Blue;
+                else if (gridType == 'g')
+                  leds[ledSpot[number]] = CRGB::Green;
+                else if (gridType == 'y')
+                  leds[ledSpot[number]] = CRGB::Yellow;
+                else if (gridType == 'p')
+                  leds[ledSpot[number]] = CRGB::Purple;                  
+              }                                                        
+
+              FastLED.show();
+              break;
     default:
               Serial.write('z');
        //put numbers on grids case 'c': put numbers on grids
   }
-  }
-  Serial.flush();
-}
-
-
-void ledValues()
-{
-  Serial.print("Now within the loop!");
-  int number;
-  String strNumber;
-  char gridSpot;
-  
-  while (!Serial.available()){}
-
-  //get grid
-  strNumber = Serial.readString();
- 
-  number = 10*convertStr2Int(strNumber[0]) + convertStr2Int(strNumber[1]);
-  gridSpot = strNumber[2];
-
-        
-        
-
-  switch (gridSpot){
-    case 'r':
-        leds[ledSpot[number]] = CRGB::Red;
-        break;
-    case 'b':
-        leds[ledSpot[number]] = CRGB::Blue;
-        break;
-    case 'g':
-        leds[ledSpot[number]] = CRGB::Green;
-        break;
-    case 'p':
-        leds[ledSpot[number]] = CRGB::Purple;
-        break;
-    case 'y':
-        leds[ledSpot[number]] = CRGB::Yellow;        
-        break;
-    default:
-        //Serial.print("Error: No Color Input");
-        break;
-  }
-    FastLED.show();
-    return;
-                                                   
 }
 
 
@@ -159,8 +132,5 @@ int convertStr2Int(char digit){
       digitAsInt = 0;    
         
   }
-  return digitAsInt;
 
 }
-
-

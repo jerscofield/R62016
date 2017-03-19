@@ -17,6 +17,7 @@
 CRGB leds[kMatrixWidth * kMatrixHeight];
 const uint8_t ledSpot[] = {14, 6, 5, 4, 3, 2, 1, 0, 14, 13, 12, 11, 10, 9, 8, 22, 21, 20, 19, 18, 17, 16, 30, 29, 28, 27, 26, 25, 24, 38, 37, 36, 35, 34, 33, 32, 46, 45, 44, 43, 42, 41, 40, 54, 53, 52, 51, 50, 49, 48, 55};
 
+
 //initialize IR values and functions
 #define model 20150
 #define ir A0    //front sensor
@@ -27,8 +28,16 @@ SharpIR sharp2(ir2, 25, 93, model);
 SharpIR sharp3(ir3, 25, 93, model);
 boolean ObjInFront(SharpIR);  //get whether or not obstacle is in front of robot
 
+
+//7 segment display
+int latchPin = 2; // pin 12
+int dataPin = 3; // pin 14
+int clockPin = 4; // pin 11
+
+
 //LED initializations
-int sevSegValues();
+//int sevSegValues();
+void write7Seg();
 
 
 //function declarations
@@ -56,7 +65,7 @@ void loop()
   char right;
   char left;
   
-  int ledNumber;
+  //char ledNumber;
  
             
   
@@ -82,8 +91,10 @@ void loop()
               Serial.print(typeOfNode[1]);
               Serial.print(typeOfNode[2]);
               break;
-    case 'd': ledNumber = sevSegValues();
-              Serial.print(ledNumber);
+    case 'd': //ledNumber = sevSegValues();
+              //ledNumber = Serial.read();
+              write7Seg();
+              //Serial.print(ledNumber);
               break;
     default:
               Serial.write('z');
@@ -102,7 +113,6 @@ void loop()
 //and changes the colors in the matrix accordingly
 void ledValues(char *typeOfNode)
 {
-  Serial.print("Now within the loop!");
   int number;
   String strNumber;
   char gridSpot;
@@ -228,6 +238,50 @@ int sevSegValues(){
   char charNumber = Serial.read();
   int number = convertStr2Int(charNumber);
   return number;
+}
+
+
+//write values to the 7 segment display
+void write7Seg(){
+  
+  while (!Serial.available()){}
+  char number = Serial.read();
+ 
+  switch (number){
+    case('1'):
+              digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 91);
+              digitalWrite(latchPin, LOW);
+              delay(1000);
+              break;
+    case('2'):  
+              digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 79);
+              digitalWrite(latchPin, LOW);
+              delay(1000);
+              break;
+    case('3'):digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 102);
+              digitalWrite(latchPin, LOW);
+              delay(1000);
+              break;
+    case('4'):digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 109);
+              digitalWrite(latchPin, LOW);
+              delay(1000);
+              break;
+    case('5'):digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 124);
+              digitalWrite(latchPin, LOW);
+              delay(1000);
+              break;
+    case('6'):digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 6);
+              digitalWrite(latchPin, LOW);
+              delay(1000);
+              break;
+  } 
+    return;
 }
 
 

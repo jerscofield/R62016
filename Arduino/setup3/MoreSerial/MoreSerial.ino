@@ -1,6 +1,7 @@
 #include <FastLED.h>
 #include <Arduino.h>
 #include <SharpIR.h>
+//#include <string>
 
 
 
@@ -26,8 +27,7 @@ const uint8_t ledSpot[] = {14, 6, 5, 4, 3, 2, 1, 0, 14, 13, 12, 11, 10, 9, 8, 22
 SharpIR sharp1(ir, 25, 93, model);
 SharpIR sharp2(ir2, 25, 93, model);
 SharpIR sharp3(ir3, 25, 93, model);
-boolean ObjInFront(SharpIR);  //get whether or not obstacle is in front of robot
-
+char ObjInFront(SharpIR);  //get whether or not obstacle is in front of robot
 
 //7 segment display
 const int latchPin = 2; // pin 12
@@ -35,19 +35,21 @@ const int dataPin = 3; // pin 14
 const int clockPin = 4; // pin 11
 
 
-//LED initializations
-//int sevSegValues();
-void write7Seg();
-
 
 //function declarations
 //converts a string array of values to an integer  
-void ledValues(*char);
+void ledValues(int, char);
 int convertStr2Int(char digit);
 void restartLEDs(void);
+void write7Seg(char);
+
+
 //void ledValues(char *typeOfNode);
 //int** convert1Dto2d(int *1dArray);
 
+//initializers for serial communication
+String inputString = "";         // a string to hold incoming data
+boolean stringComplete = false;  // whether the string is complete
 
 
 void setup() {
@@ -58,15 +60,78 @@ void setup() {
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
     FastLED.setBrightness(  96 );
   //pinmodes for 7 segment LED  
-  pinMode(latchPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  leds[1] = CRGB::Red;
+  inputString.reserve(200);
     
 }
 
 void loop()
 {
+  
+  
+    // print the string when a newline arrives:
+  if (stringComplete) {
+    char front;
+    char right;
+    char left;
+    
+    char actionType = inputString[0];
+   // Serial.print(actionType);
+    int number = 10*convertStr2Int(inputString[1]) + convertStr2Int(inputString[2]);
+    char sevSegNumber = convertStr2Int(inputString[1]);
+    char gridType = inputString[3];
+    
+ switch(actionType){
+    case 'a':  front = objInFront(sharp1);//get front IR sensor from PI
+               Serial.write(front);         
+               break;
+    case 'b':  right = objInFront(sharp1); //get front, right, and left values from IR sensor
+               front = objInFront(sharp2);
+               left = objInFront(sharp3);
+               Serial.print(right);
+               Serial.print(front);
+               Serial.print(left);
+               break;
+    case 'c':  ledValues(number, gridType);
+                                      //updates the matrix
+              Serial.flush();
+              break;
+    case 'e':                         //used for testing the matrix. remove later
+              //Serial.print(typeOfNode[1]);
+              //Serial.print(typeOfNode[2]);
+              Serial.flush();
+              break;
+    case 'd': 
+              write7Seg(sevSegNumber);
+              //Serial.print(ledNumber);
+              Serial.flush();              
+              break;
+    case 'f': //restartLEDs();
+              Serial.flush();
+              break;
+    default:
+              Serial.write('z');
+              Serial.flush();
+       //put numbers on grids case 'c': put numbers on grids
+  }                        
+    
+ //   int number = 10*convertStr2Int(std::inputString[1]) + convertStr2Int(std::inputString[2]);
+
+   // Serial.println(inputString);
+    //Serial.write("Number: ");
+    //Serial.write(number);
+    //Serial.print("gridType: ");
+    //Serial.print(gridType);
+
+
+    inputString = "";
+    stringComplete = false;
+  }
+
+}
+
+
+
+ /*
   char typeOfNode[50];  //array of values in each LED on the matrix
   
   char front;
@@ -79,7 +144,9 @@ void loop()
   
   //wait until Pi is ready to communicate
   if (Serial.available() > 0){
-
+   // d = Serial.read() - '0';
+    
+  char infoString[5] = {}
   infoString = Serial.read();//-'0';
   int number = infoString[0];
      
@@ -117,40 +184,20 @@ void loop()
               Serial.flush();
        //put numbers on grids case 'c': put numbers on grids
   }
-  }
-
-}
+  }*/
 
 
-//this is currently not working
-void restartLEDs(){
-
-for (int i = 0; i < 64; i++)
-     leds[i] = CRGB::White;
-return;
-}
 
 //change color of the LED on the matrix display
 //takes strng from the serial communication
 //converts string to a number for which LED should display
 //and a character for which color the LED should change to
 //and changes the colors in the matrix accordingly
-void ledValues(char typeOfString)
+void ledValues(int number, char typeOfString)
 {
-  int number;
-  String strNumber;
-  char gridSpot;
-  
- // while (Serial.available() > 0){
+       
 
-  //get grid
-  strNumber = Serial.readString();
- 
-  number = 10*convertStr2Int(strNumber[1]) + convertStr2Int(strNumber[2]);
-  gridSpot = strNumber[3];
-        
-
-  switch (gridSpot){
+  switch (typeOfString){
     case 'r':
         leds[ledSpot[number]] = CRGB::Red;
         break;
@@ -225,45 +272,9 @@ int convertStr2Int(char digit){
 
 }
 
-
-//converts a 1d matrix to a 2d matrix
-/*
-int** convert1Dto2d(int *1dArray){
-  int** array2D = 0;
-  
-        array2D = new int*[height];
-  
-        for (int h = 0; h < 7; h++)
-        {
-              array2D[h] = new int[width];
-  
-              for (int w = 0; w < 7; w++)
-              {
-                    array2D[h+1][w+1] = 1dArray[h*7 + w];                    
-              }
-        }
-  return 2dArray;
-}*/
-
-
-//checks for obstacle in front of the robot
-//I think that this sensor only detects within 10 t0 80 CM
-//should be able to check 3 blocks
-char objInFront(SharpIR sharp){
-  int dis = sharp.distance();
-  
-  if(dis > 40)
-    return '0';  //there is no obstacle in front of sensor
-   else 
-     return '1';  //there is an obstacle in front of sensor
-}
-
-
 //write values to the 7 segment display
-void write7Seg(){
+void write7Seg(char number){
   
-  while (!Serial.available()){}
-  char number = Serial.read();
 
 // JScofield 3-19-17.  added extra clock high and low to push data through the storage register.  Converted values to hex.   
 
@@ -320,6 +331,36 @@ void write7Seg(){
 
   } 
     return;
+}
+
+
+//checks for obstacle in front of the robot
+//I think that this sensor only detects within 10 t0 80 CM
+//should be able to check 3 blocks
+char objInFront(SharpIR sharp){
+  int dis = sharp.distance();
+  
+  if(dis > 40)
+    return '0';  //there is no obstacle in front of sensor
+   else 
+     return '1';  //there is an obstacle in front of sensor
+}
+
+
+
+
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag
+    // so the main loop can do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+    }
+  }
 }
 
 

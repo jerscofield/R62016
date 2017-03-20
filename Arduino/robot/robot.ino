@@ -104,7 +104,7 @@ void loop(){
   
   
   //temp value to run motor from arduino
- //whichFunction = 6;
+  whichFunction = 4;
 
 
   

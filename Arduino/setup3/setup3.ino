@@ -30,9 +30,9 @@ boolean ObjInFront(SharpIR);  //get whether or not obstacle is in front of robot
 
 
 //7 segment display
-int latchPin = 2; // pin 12
-int dataPin = 3; // pin 14
-int clockPin = 4; // pin 11
+const int latchPin = 2; // pin 12
+const int dataPin = 3; // pin 14
+const int clockPin = 4; // pin 11
 
 
 //LED initializations
@@ -54,6 +54,10 @@ void setup() {
     //initialize LED object
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
     FastLED.setBrightness(  96 );
+  //pinmodes for 7 segment LED  
+  pinMode(latchPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
     
 }
 
@@ -246,40 +250,60 @@ void write7Seg(){
   
   while (!Serial.available()){}
   char number = Serial.read();
- 
+
+// JScofield 3-19-17.  added extra clock high and low to push data through the storage register.  Converted values to hex.   
+
   switch (number){
+    case('2'):
+              digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 0x5B);//shiftOut(dataPin, clockPin, MSBFIRST, 091);
+              digitalWrite(latchPin, LOW);
+              digitalWrite(latchPin, HIGH);
+              digitalWrite(latchPin, LOW);
+              break;
+              case('3'):  
+              digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 0x4F);//shiftOut(dataPin, clockPin, MSBFIRST, 079);
+              digitalWrite(latchPin, LOW);
+              digitalWrite(latchPin, HIGH);
+              digitalWrite(latchPin, LOW);
+              break;
+    case('4'):
+              digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 0x66);//shiftOut(dataPin, clockPin, MSBFIRST, 0102);
+              digitalWrite(latchPin, LOW);
+              digitalWrite(latchPin, HIGH);
+              digitalWrite(latchPin, LOW);
+              break;
+    case('5'):
+              digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 0x6D);//shiftOut(dataPin, clockPin, MSBFIRST, 0109);
+              digitalWrite(latchPin, LOW);
+              digitalWrite(latchPin, HIGH);
+              digitalWrite(latchPin, LOW);
+              break;
+    case('6'):
+              digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 0x7C);//shiftOut(dataPin, clockPin, MSBFIRST, 0124);
+              digitalWrite(latchPin, LOW);
+              digitalWrite(latchPin, HIGH);
+              digitalWrite(latchPin, LOW);
+              break;
     case('1'):
               digitalWrite(latchPin, HIGH);
-              shiftOut(dataPin, clockPin, MSBFIRST, 91);
+              shiftOut(dataPin, clockPin, MSBFIRST, 0x06);//shiftOut(dataPin, clockPin, MSBFIRST, 6);
               digitalWrite(latchPin, LOW);
-              delay(1000);
-              break;
-    case('2'):  
               digitalWrite(latchPin, HIGH);
-              shiftOut(dataPin, clockPin, MSBFIRST, 79);
               digitalWrite(latchPin, LOW);
-              delay(1000);
               break;
-    case('3'):digitalWrite(latchPin, HIGH);
-              shiftOut(dataPin, clockPin, MSBFIRST, 102);
+    default:
+              digitalWrite(latchPin, HIGH);
+              shiftOut(dataPin, clockPin, MSBFIRST, 0x00);//shiftOut(dataPin, clockPin, MSBFIRST, 000);
               digitalWrite(latchPin, LOW);
-              delay(1000);
-              break;
-    case('4'):digitalWrite(latchPin, HIGH);
-              shiftOut(dataPin, clockPin, MSBFIRST, 109);
+              digitalWrite(latchPin, HIGH);
               digitalWrite(latchPin, LOW);
-              delay(1000);
               break;
-    case('5'):digitalWrite(latchPin, HIGH);
-              shiftOut(dataPin, clockPin, MSBFIRST, 124);
-              digitalWrite(latchPin, LOW);
-              delay(1000);
-              break;
-    case('6'):digitalWrite(latchPin, HIGH);
-              shiftOut(dataPin, clockPin, MSBFIRST, 6);
-              digitalWrite(latchPin, LOW);
-              delay(1000);
-              break;
+
   } 
     return;
 }

@@ -42,6 +42,7 @@ void ledValues(int, char);
 int convertStr2Int(char digit);
 void restartLEDs(void);
 void write7Seg(char);
+char IMUTurn(int);
 
 
 //void ledValues(char *typeOfNode);
@@ -50,6 +51,7 @@ void write7Seg(char);
 //initializers for serial communication
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
+int previousHeader;
 
 
 void setup() {
@@ -64,7 +66,7 @@ void setup() {
   pinMode(dataPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   inputString.reserve(200);
-    
+  previousHeader = 0;
 }
 
 void loop()
@@ -76,26 +78,35 @@ void loop()
     char front;
     char right;
     char left;
+    String value2Send = "";
     
     char actionType = inputString[0];
    // Serial.print(actionType);
     int number = 10*convertStr2Int(inputString[1]) + convertStr2Int(inputString[2]);
+    int headerNumber = 100*convertStr2Int(inputString[1]) + 10*convertStr2Int(inputString[2]) + convertStr2Int(inputString[3]);
     char sevSegNumber = inputString[1];
     char gridType = inputString[3];
     
  switch(actionType){
     case 'a':  front = objInFront(sharp1);//get front IR sensor from PI
+               value2Send += front;
+               value2Send += '\n';
                Serial.write(front);         
                break;
     case 'b':  right = objInFront(sharp1); //get front, right, and left values from IR sensor
                front = objInFront(sharp2);
                left = objInFront(sharp3);
-               Serial.print(right);
-               Serial.print(front);
-               Serial.print(left);
+               value2Send += right;
+               value2Send += front;
+               value2Send += left;
+               value2Send += '\n';
+               //irValue2Send.append(front);
+               //irValue2send.append()
+               //Serial.print(right);
+               //Serial.print(front);
+               Serial.println(value2Send);
                break;
-    case 'c':  ledValues(number, gridType);
-                                      //updates the matrix
+    case 'c':  ledValues(number, gridType);   //updates the matrix
               Serial.flush();
               break;
     case 'e':                         //used for testing the matrix. remove later
@@ -103,12 +114,20 @@ void loop()
               //Serial.print(typeOfNode[2]);
               Serial.flush();
               break;
-    case 'd': 
-              write7Seg(sevSegNumber);
+    case 'd': write7Seg(sevSegNumber);
               //Serial.print(ledNumber);
               Serial.flush();              
               break;
     case 'f': //restartLEDs();
+              Serial.flush();
+              break;
+    case 'g': previousHeader = headerNumber;
+              Serial.flush();
+              break;
+    case 'h': front = IMUTurn(headerNumber);        //code for comparing headers
+             // value2Send += front;
+             // value2Send += '\n';
+              Serial.write(front);
               Serial.flush();
               break;
     default:
@@ -278,9 +297,9 @@ char objInFront(SharpIR sharp){
   int dis = sharp.distance();
   
   if(dis > 40)
-    return '0';  //there is no obstacle in front of sensor
+    return '1';  //there is no obstacle in front of sensor
    else 
-     return '1';  //there is an obstacle in front of sensor
+     return '0';  //there is an obstacle in front of sensor
 }
 
 
@@ -300,5 +319,17 @@ void serialEvent() {
   }
 }
 
+
+char IMUTurn(int newHeader){
+  
+  if (newHeader > previousHeader){
+    previousHeader = newHeader;
+    return '0';
+  }
+  else{
+    previousHeader = newHeader;
+    return '1';
+  }
+}
 
 

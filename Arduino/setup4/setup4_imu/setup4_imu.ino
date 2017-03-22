@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <SharpIR.h>
 //#include <string>
-
+//#include <IMU_sensor.h>
 
 
 
@@ -17,6 +17,7 @@
 #define UPDATES_PER_SECOND 100
 CRGB leds[kMatrixWidth * kMatrixHeight];
 const uint8_t ledSpot[] = {14, 6, 5, 4, 3, 2, 1, 0, 14, 13, 12, 11, 10, 9, 8, 22, 21, 20, 19, 18, 17, 16, 30, 29, 28, 27, 26, 25, 24, 38, 37, 36, 35, 34, 33, 32, 46, 45, 44, 43, 42, 41, 40, 54, 53, 52, 51, 50, 49, 48, 55};
+
 
 
 //initialize IR values and functions
@@ -39,11 +40,10 @@ const int clockPin = 4; // pin 11
 //function declarations
 //converts a string array of values to an integer  
 void ledValues(int, char);
-int convertChar2Int(char);
-char convertInt2Char(int);
+int convertStr2Int(char digit);
 void restartLEDs(void);
 void write7Seg(char);
-String IMUTurn(void);
+//char IMUTurn(int);
 
 
 //void ledValues(char *typeOfNode);
@@ -52,7 +52,8 @@ String IMUTurn(void);
 //initializers for serial communication
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
-int previousHeader;
+//int Heading;            //removed because you have it in setup.
+//int previousHeading;  //  previous Heading should be local,  Heading should be global...?
 
 
 void setup() {
@@ -67,8 +68,8 @@ void setup() {
   pinMode(dataPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   inputString.reserve(200);
-  previousHeader = 0;int sensorValue = 0;  // variable to store the value coming from the sensor
-    leds[ledSpot[1]] = CRGB::Yellow;  // turn yellow on home square at init.
+ // Heading = 0;  // sets initial heading to 0.
+  leds[ledSpot[1]] = CRGB::Yellow;  // turn yellow on home square at init.
   FastLED.show();
 }
 
@@ -85,8 +86,8 @@ void loop()
     
     char actionType = inputString[0];
    // Serial.print(actionType);
-    int number = 10*convertChar2Int(inputString[1]) + convertChar2Int(inputString[2]);
-    int headerNumber = 100*convertChar2Int(inputString[1]) + 10*convertChar2Int(inputString[2]) + convertChar2Int(inputString[3]);
+    int number = 10*convertStr2Int(inputString[1]) + convertStr2Int(inputString[2]);
+    int headingNumber = 100*convertStr2Int(inputString[1]) + 10*convertStr2Int(inputString[2]) + convertStr2Int(inputString[3]);  // should not be needed.  IMU is set to return Integer values.
     char sevSegNumber = inputString[1];
     char gridType = inputString[3];
     
@@ -110,24 +111,28 @@ void loop()
                Serial.println(value2Send);
                break;
     case 'c':  ledValues(number, gridType);   //updates the matrix
-
+              Serial.flush();
               break;
     case 'e':                         //used for testing the matrix. remove later
               //Serial.print(typeOfNode[1]);
               //Serial.print(typeOfNode[2]);
               Serial.flush();
               break;
-    case 'd': write7Seg(sevSegNumber);            
+    case 'd': write7Seg(sevSegNumber);
+              //Serial.print(ledNumber);
+              Serial.flush();              
               break;
     case 'f': //restartLEDs();
               Serial.flush();
               break;
-    case 'g': previousHeader = headerNumber;    //change so that all of the header values come from the library
+    case 'g': //previousHeading = headingNumber;    //change so that all of the header values come from the library
+              Serial.flush();
               break;
-    case 'h': value2Send = IMUTurn();        //code for comparing headers
-              value2Send += '\n';
-              Serial.println(value2Send);
-              //Serial.flush();
+    case 'h': //front = IMU(Heading);        //code for comparing headers  // not necessary,  math is done by pi in motorcontrol.  we only need to send heading when it changes.
+             // value2Send += front;
+             // value2Send += '\n';
+              Serial.write(front);
+              Serial.flush();
               break;
     default:
               Serial.write('z');
@@ -151,7 +156,9 @@ void loop()
 void ledValues(int number, char typeOfString)
 {
        
-
+  if (number == 1)
+    return;
+    
   switch (typeOfString){
     case 'r':
         leds[ledSpot[number]] = CRGB::Red;
@@ -159,14 +166,17 @@ void ledValues(int number, char typeOfString)
     case 'b':
         leds[ledSpot[number]] = CRGB::Blue;
         break;
-    case 'g':
-        leds[ledSpot[number]] = CRGB::Green;
-        break;
-    case 'p':
-        leds[ledSpot[number]] = CRGB::Purple;
-        break;
+//    case 'g':
+//        leds[ledSpot[number]] = CRGB::Green;
+//        break;
+//    case 'p':
+//        leds[ledSpot[number]] = CRGB::Purple;
+//        break;
     case 'y':
         leds[ledSpot[number]] = CRGB::Yellow;        
+        break;
+    case '-'://black
+        leds[ledSpot[number]] = CRGB::Black;        
         break;
     default:
         //Serial.print("Error: No Color Input");
@@ -185,7 +195,7 @@ void ledValues(int number, char typeOfString)
 //takes a number in the form of a character
 //converts the character number to an integer number
 //returns the integer number
-int convertChar2Int(char digit){
+int convertStr2Int(char digit){
   int digitAsInt = 0;
   
   switch(digit){
@@ -224,53 +234,6 @@ int convertChar2Int(char digit){
         
   }
   return digitAsInt;
-
-}
-
-
-//used with the ledValues function
-//takes a number in the form of a character
-//converts the character number to an integer number
-//returns the integer number
-char convertInt2Char(int digit){
-  char digitAsChar = 0;
-  
-  switch(digit){
-    case 0:
-      digitAsChar = '0';
-      break;
-    case 1:
-      digitAsChar = '1';
-      break;
-    case 2:
-      digitAsChar = '2';
-      break;
-    case 3:
-      digitAsChar = '3';
-      break;
-    case 4:
-      digitAsChar = '4';
-      break;
-    case 5:
-      digitAsChar = '5';
-      break;
-    case 6:
-      digitAsChar = '6';
-      break;
-    case 7:
-      digitAsChar = '7';
-      break;
-    case 8:
-      digitAsChar = '8';
-      break;
-    case 9:
-      digitAsChar = '9';
-      break;  
-    default:
-      digitAsChar = '0';    
-        
-  }
-  return digitAsChar;
 
 }
 
@@ -364,30 +327,17 @@ void serialEvent() {
     }
   }
 }
+/* test
 
-
-String IMUTurn(void){
-  String returnHeader = "";
-  
-  int header;
-  //put code for get header here
-  
-   //returnHeader += convertInt2Char(header / 100);
-   //returnHeader += convertInt2Char((header  % 100) / 10);
-   //returnHeader += convertInt2Char(header  % 10);
-   
-  
-  
-  /*if (newHeader > previousHeader){
-    previousHeader = newHeader;
-    return '0';
-  }
-  else{
-    previousHeader = newHeader;
-    return '1';
-  }
-  */
-  return returnHeader;
-}
+char IMU(int Heading){
+//previousHeading=Heading //   move current heading to previous for compare.  
+Heading=IMU_sensor.get_updated_heading()  
+//  if (Heading ~= previousHeading){
+//    return 'Heading';   // set heading as global variable, no need to return.?  EJ.  JS.
+//  }
+//  else{
+//    return;
+// we can probably take out the else value here.     }
+}*/
 
 

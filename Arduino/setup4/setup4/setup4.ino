@@ -340,7 +340,7 @@ void write7Seg(char number){
 //I think that this sensor only detects within 10 t0 80 CM
 //should be able to check 3 blocks
 char objInFront(SharpIR sharp){
-  int dis = sharp.distance();
+  int dis = abs(sharp.distance());
   
   if(dis > 40)
     return '1';  //there is no obstacle in front of sensor

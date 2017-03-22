@@ -1,8 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''
 # This is an example of controlling the rotation of motors using encoders
-
 # BrickPi's first Arduino runs motor ports A & b, as well as sensor ports 1 & 2. Arduino 2 does the rest of them.
 # You may get better performance (certainly fewer communication errors with the BrickPi, and less work using my version
 #   of the BrickPi.py driver) if you place all your motors and sensors on the same Arduino (if possible).
@@ -52,7 +51,7 @@ class MotorControls:
             #       print ("Accuracy: %d %% %d %%" % (deltaLeft * 100 // abs(deg[0]), deltaRight * 100 // abs(deg[1])))
             #       print ("Max wheel speed differential in encoder tics: %d" % maxWheelSpeedDiff)
            ## print("=============")
-           ## BrickPiSense()
+           # BrickPiSense()
 
   # Move Forward
     def fwd(self):
@@ -136,7 +135,17 @@ class MotorControls:
     #turn left, then go straight
     def leftStraight(self):
         self.left()
-        self.straight()
+        self.fwd()
+
+    #turn left, then go straight
+    def straightLeft(self):
+        self.fwd()
+        self.left()
+
+    #turn left, then go straight
+    def straightRight(self):
+        self.fwd()
+        self.right()
 
     #turn left, straight, left
     def leftStraightLeft(self):
@@ -146,7 +155,7 @@ class MotorControls:
     #turn right, then go straight
     def rightStraight(self):
         self.right()
-        self.straight()
+        self.fwd()
 
     #turn right, go straight, turn right
     def rightStraightRight(self):
@@ -157,68 +166,67 @@ class MotorControls:
         self.right()
         self.right()
 
-
     # Move the simplebot depending on the command
     def move_bot(self,val):
         global cmd
-        if val == 'w':
+        if val == 0:
             # cmd=='w'
             self.fwd()
-        elif val == 'a':
+        elif val == 8:
             #    cmd='a'
             self.left()
-        elif val == 'd':
+        elif val == 7:
             # cmd='d'
             self.right()
-        elif val == 'q':
+        #elif val == 'q':
             # cmd='q'
-            self.leftP()
-        elif val == 'e':
+         #   self.leftP()
+        #elif val == 'e':
             # cmd='e'
-            self.rightP()
-        elif val == 'z':
+         #   self.rightP()
+        #elif val == 'z':
             # cmd='z'
-            self.leftS()
-        elif val == 'c':
+         #   self.leftS()
+        #elif val == 'c':
             # cmd='c'
-            self.rightS()
-        elif val=='h':
+         #   self.rightS()
+        #elif val=='h':
                 #cmd='c'
-            self.rightHalfArc1()
-        elif val=='j':
+         #   self.rightHalfArc1()
+        #elif val=='j':
                 #cmd='c'
-            self.rightHalfArc2()
+         #   self.rightHalfArc2()
         #elif val=='n':
                 #cmd='c'
          #   self.leftHalfArc1()
-        elif val=='m':
+        #elif val=='m':
                 #cmd='c'
-            self.leftHalfArc2()
-        elif val == 'r':
+         #   self.leftHalfArc2()
+        #elif val == 'r':
             # cmd='c'
-            self.leftArc()
-        elif val == 't':
+         #   self.leftArc()
+        #elif val == 't':
             # cmd='c'
-            self.rightArc()
-        elif val == 's':
+         #   self.rightArc()
+        elif val == 4:
             # cmd='s'
             self.stop()
-        elif val == 'x':
+        #elif val == 'x':
             # cmd='x'
-            self.back()
-        elif val == 'l':
+         #   self.back()
+        elif val == 1:
             #cmd = 'l'
             self.leftStraight()
-        elif val == 'p':
+        elif val == 10:
             #cmd = 'l'
             self.rightStraight()
-        elif val == 'n':
-            self.leftStraightLeft()
-        elif val == 'b':
-            self.rightStraightRight()
-        elif val == 'k':
+      #  elif val == 'n':
+       #     self.leftStraightLeft()
+       # elif val == 'b':
+        #    self.rightStraightRight()
+        elif val == 9:
             self.fullTurn()
-        elif val == 'v':
+        elif val == 5:
             self.straightRight()
-        elif val == '.':
+        elif val == 6:
             self.straightLeft()

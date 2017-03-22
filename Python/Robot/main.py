@@ -1,17 +1,16 @@
+#!/usr/bin/env python2
+
 from __future__ import print_function
 from __future__ import division
 
 import grid
 import rotationMotorTest
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import serial
 import time
 import os
 
-#IMU Files
-#import logging
-#import sys
-#import math
+import math
 
 #motor control
 from BrickPi import *  # import BrickPi.py file to use BrickPi operations
@@ -24,17 +23,22 @@ right_motor = PORT_A
 motor = rotationMotorTest.MotorControls(left_motor, right_motor)
 
 #initialize serial communication
-ser = serial.Serial('/dev/ttyACM1',9600)
-
-
-
+#ser = serial.Serial('/dev/ttyUSB1',9600, timeout = 2)   #use with redboard
+ser = serial.Serial('/dev/ttyAMA0',9600, timeout = 2)  #use with arduino uno
 
 #function for shutdown pi when red button is pressed
-#def Shutdown(channel):
-#	GPIO.cleanup()
-#	os.system("sudo shutdown -h now")
+def Shutdown(channel):
+  # time.sleep(4)
+   GPIO.cleanup()
+   os.system("sudo shutdown -h now")  #shuts down entire operating system
+
+#setup interrupts for stop push button
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(04, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(04, GPIO.FALLING, callback = Shutdown, bouncetime = 2000)
 
 
+#code for direction to go
 #0 go straight
 #1 turn left, go straight
 #2 turn left, go straight, turn left
@@ -48,128 +52,316 @@ ser = serial.Serial('/dev/ttyACM1',9600)
 #call motor object for controlling the motor
 #perimeter search. will continue to run as long as the last node hasn't been reached
 def PerimeterSearch(course_nodes):
+   
     course_nodes.is_searching = 1
-    #perimeter search. will continue to run as long as the last node hasn't been reached
     while course_nodes.is_searching == 1:
-        print ("Perimeter Search", course_nodes.current_node)
+       # course_nodes[course_nodes.current_node].traversed = True  #don't keep this code, probably
 
-	    #update sensor values
-     #   ser.write('G');
+      #*******************put "get node data" code in here**************
+        #course_nodes[current_node].node_type = 
+      #depending on what type of values we received from the capacitive sensor, change color code
 
-        #get EMF value from Arduino
-      #  EMF = ser.read()
-        #print (EMF)
-        
-       # ir_sensor = ser.read()
-        #print (ir_sensor)
-        
-	action_to_take = course_nodes.next_node_perim()
-        #action_to_take = course_nodes.next_node()
-        
-        if action_to_take == 0:
-            inp = 'w'       #robot isn't at a corner. go straight.
-        elif action_to_take == 6:
-            inp = '.'       #robot is right before the corner. go straight, turn left (will need to change code to do this)
-      #  elif action_to_take == 2:
-       #     inp = 's'       #robot is at a corner. does a half turn onto the next node
-            
-      #  motor.move_bot(inp)  # Send command to move the bot
-        time.sleep(.5)  # sleep for 10 ms
+        #update matrix display via Arduino
+        sendAndReceiveValue('c', int(course_nodes.current_node), course_nodes[course_nodes.current_node].node_type)
+        action_to_take = course_nodes.next_node_perim()
 
-#0 go straight
-#1 turn left, go straight
-#2 turn left, go straight, turn left
-#3 turn right, go straight, turn right
-#4 stop
-#5 straight, right
-#6 straight, left
-#7 right
-#8 left
+
+        motor.move_bot(action_to_take)  # Send command to move the bot
+        time.sleep(1)  # sleep for 10 ms
+
+
+    # 0 go straight
+    # 1 turn left, go straight
+    # 2 turn left, go straight, turn left
+    # 3 turn right, go straight, turn right
+    # 4 stop
+    # 5 straight, right
+    # 6 straight, left
+    # 7 right
+    # 8 left
+    # 9 180 degree turn
+    # 10 turn right, go straight
 def GridSearch(course_nodes):
     course_nodes.is_searching = 1
     while course_nodes.is_searching == 1:
-    	print ("Grid Search", course_nodes.current_node)
 
-        ser.write('a')              #get node values from the Arduino
-        objInFront = ser.read()     #check if there are any obstacles in front of the robot
-        if objInFront == '1':       #if there are any obstacles in front of the robot, avoid the obstacle
-            obstacleAvoidance(course_nodes,motor)
 
+      #*******************put "get node data" code in here**************
+        #course_nodes[current_node].node_type = 
+        #depending on what type of values we received from the capacitive sensor, change color code
+
+         #update matrix display via Arduino
+       # sendAndReceiveValue('c', int(course_nodes.current_node), course_nodes[course_nodes.current_node].node_type)
+       
+        course_nodes[course_nodes.current_node].traversed = True
+
+        #update matrix display via Arduino
+       # sendAndReceiveValue('c', int(course_nodes.current_node), course_nodes[course_nodes.current_node].node_type)
         action_to_take = course_nodes.next_node_grid()
-        if action_to_take == 0:
-            inp = 'w'       #robot isn't at a corner. go straight.
-        elif action_to_take == 1:
-            inp = 'l'       #robot is at beginning of perimeter search. needs to turn into grid
-        elif action_to_take == 2:
-            inp = 'n'       #robot is at easternmost inner grid
-        elif action_to_take == 3:
-            inp = 'b'       #robot is at final node. stop
-        elif action_to_take == 4:
-            inp = 's'       #turn 180 degrees
-       # motor.move_bot(inp)  # Send command to move the bot
+
+         #determine if there in an obstacle in front of the robot
+     #   objInFront = sendAndReceiveValue('a', 'z', 'z')
+      #  if objInFront == '0':       #if there are any obstacles in front of the robot, avoid the obstacle
+       #    obstacleAvoidance(course_nodes, motor)
+           
+    #    sendAndReceiveValue('c', int(course_nodes.current_node), 'b')
+     #   action_to_take = course_nodes.next_node_grid()
+
+        motor.move_bot(action_to_take)  # Send command to move the bot
         time.sleep(.5)  # sleep for 10 ms
 
+def obstacleAvoidance(course_nodes, motor):
+   print ("now in obstacle avoidance!")
+   startNode = course_nodes.current_node
+   startRow = course_nodes[course_nodes.current_node].row_number
+   startOrientation = course_nodes.orientation
+   course_nodes.avoidingObstacle = True
+
+   #if we are in an even row, do this obstacle avoidance
+   if course_nodes[course_nodes.current_node].row_number % 2 == 0:
+      course_nodes.change_orientation('l')
+      motor.move_bot(1)  # turn left, go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+      course_nodes.change_orientation('r')
+      motor.move_bot(10)  # turn right, go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+      motor.move_bot(0)  # go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node() 
+      course_nodes.change_orientation('r')
+      motor.move_bot(10)  # turn right, go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+      motor.move_bot(0)  # go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+      motor.move_bot(8)  # turn left
+      course_nodes.change_orientation('l')
+
+   #if we are in an odd row, do this obstacle avoidance
+   elif course_nodes[course_nodes.current_node].row_number % 2 == 1:
+      course_nodes.change_orientation('l')
+      motor.move_bot(10)  # turn right, go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+      course_nodes.change_orientation('r')
+      motor.move_bot(1)  # turn left, go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+      motor.move_bot(0)  # go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node() 
+      course_nodes.change_orientation('r')
+      motor.move_bot(1)  # turn left, go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+      motor.move_bot(0)  # go straight
+      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+      motor.move_bot(7)  # turn right
+      course_nodes.change_orientation('l')
+
+#better obstacle avoidance code. has not been debugged yet
+     # course_nodes.change_orientation('l')
+     # motor.move_bot(1)  # turn left, go straight
+    #  course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+    #  course_nodes.change_orientation('r')
+   # while course_nodes.avoidingObstacle == True:
+          #irValues = sendAndReceiveValue('b', 'z', 'z')
+      #   direction = course_nodes.obstacleAvoidance('e', irValues, startNode)
+          # motor.move_bot(direction)
+       #  time.sleep(3)
+       
+       # motor.move_bot('a') #turn robot left to reorient robot
+
+      #course_nodes.change_orientation('l') #reorient direction in node
+      #print ("end of obstacle avoidance**********")
+
+           
+      #course_nodes.change_orientation('r') #reorient direction in node
+      #print ("end of obstacle avoidance************")
 
 
+#convert a character to a number to send or receive
+def number2Char(number):
+   if number == 1:
+      return '1'
+   elif number == 2:
+      return '2'
+   elif number == 3:
+      return '3'
+   elif number == 4:
+      return '4'
+   elif number == 5:
+      return '5'
+   elif number == 6:
+      return '6'
+   elif number == 7:
+      return '7'
+   elif number == 8:
+      return '8'
+   elif number == 9:
+      return '9'
+   else:
+      return '0'
 
-def evaluateNode():
-    ser.write('b')  # get IR sensor values from the Arduino
-    sensor1 = ser.read()
-    sensor2 = ser.read()
-    sensor3 = ser.read()
-    values = {1: sensor1, 2: sensor2, 3: sensor3}
+#convert a number to a character to send or receive
+def char2Number(number):
+   if number == '1':
+      return 1
+   elif number == '2':
+      return 2
+   elif number == '3':
+      return 3
+   elif number == '4':
+      return 4
+   elif number == '5':
+      return 5
+   elif number == '6':
+      return 6
+   elif number == '7':
+      return 7
+   elif number == '8':
+      return 8
+   elif number == '9':
+      return 9
+   else:
+      return 0
+
+
+#a: see if object is in front of the robot
+#b: see if object isto the right of, in front of, or left of the robot
+#c: send LED value
+#d: send value for seven segment display
+#g: get header values
+
+def sendAndReceiveValue(actionCode, actionToTake, color):
+    
+    send = actionCode
+    values = ' '
+
+
+    if actionCode == 'a':    #see if obstacle is in front of robot
+           send += '\n'
+           ser.write(send)
+           values = ser.read()  #see if obstacle is to the right of, in front of, or to the left of the robot
+    elif actionCode == 'b':
+           send += '\n'
+           ser.write(send)
+           sensor1 = ser.read() #right
+           sensor2 = ser.read() #front
+           sensor3 = ser.read() #left
+           values = {1: sensor1, 2: sensor2, 3: sensor3}
+    elif actionCode == 'c':  #send value and color to matrix display 
+           if actionToTake < 10:
+              #print (actionToTake)
+              send += '0'
+              send += number2Char(actionToTake)
+              send += color
+              send += '\n'
+              ser.write(send)
+           else:
+              send += number2Char(math.floor(actionToTake / 10))
+              send += number2Char(actionToTake % 10)
+              send += color
+              send += '\n'
+              ser.write(send)
+    elif actionCode == 'd':  #send value to 7 segment LED to display
+           send += number2Char(actionToTake)
+           send += '\n'
+           ser.write(send)
+           values = ser.read()
+    elif actionCode == 'g':
+           send += '\n'
+           ser.write(send)
+           values1 = ser.read()
+           values2 = ser.read()
+           values3 = ser.read()
+           values = char2Number(value1)*100 + char2Number(values)*10 + char2Number(value3) #returns 3 digit integer
+    else:
+           send = actionCode
+           send += actionCode
+
+    #print (send)
     return values
 
-#def UpdateValues():
 
-#setup interrupts for stop push button
-#GPIO.setmode(GPIO.BCM)
-#GPIO.setup(11, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-#GPIO.add_event_detect(11, GPIO.FALLING, callback = Shutdown, bouncetime = 2000)
+#after all nodes have been travsersed, this code will check to see if the unmarked nodes are above an EMF field
+def completeGrid():
+   for i in range(course_nodes.number_of_nodes):
+      if course_nodes[i].is_perimeter == false and course_nodes[i].node_type == 'u':
+         if course_nodes[i+1].is_emf == True:
+            if course_nodes[i-1].is_emf == True or course_nodes[i-7].is_emf == True or course_nodes[i+7].is_emf == True:
+               course_nodes[i].node_type == 'e'
+               sendAndReceiveValue('c', course_nodes.current_node, color)
+         elif course_nodes[i-1].is_emf == True:
+            if course_nodes[i-7].is_emf == True or course_nodes[i+7].is_emf == True:
+               course_nodes[i].node_type == 'e'
+               sendAndReceiveValue('c', course_nodes.current_node, color)
+         elif course_nodes[i+7].is_emf == True and course_nodes[i-7].is_emf == True:
+               course_nodes[i].node_type == 'e'
+               sendAndReceiveValue('c', course_nodes.current_node, color)
 
+def turn(turnDirection):
+
+   tolerance = 5
+   
+   if turnDirection == 'l':
+      destinationHeading = -90
+
+   elif turnDirection == 'r':
+      destinationHeading = 90
+
+   heading = sendAndReceiveValue('g', 'z', 'z') - destinationHeading
+   if heading > 180:
+      heading = heading - 360
+
+   while (abs(heading - destinationHeading) > tolerance):
+
+def calc_motor_degree():
+   destination_heading = 90;
+   tolerance = 5;
+   wheel_track = 5.4;
+   wheel_circ = 7;
+   if abs(heading) > (destination_heading + tolerance) or abs(heading) < (destination_heading - tolerance):
+       theta = heading - nominal;
+       theta = math.radians(theta);
+       opp = (wheel_track/2)*(math.sin(theta));
+       wheel_rotate = opp/wheel_circ;
+       wheel_rotate = math.degrees(wheel_rotate);
+   else:
+         wheel_rotate = 0;
+   return wheel_rotate
+      
 
 def main():
-    number_of_nodes = 100
-    course_nodes = grid.Grid(number_of_nodes)
-    #left_motor = PORT_B
-    #right_motor = PORT_A
-    #motor = rotationMotorTest.MotorControls(left_motor, right_motor)
-    #bno = BNO055.BNO055(serial_port='/dev/ttyAMA0', rst=18)
+   number_of_nodes = 50
+   course_nodes = grid.Grid(number_of_nodes)
    
-   # ser = serial.Serial('/dev/ttyACM1',9600)
-  #  has_been_pressed = 0
-  #  while has_been_pressed == 0:
-  #      read_serial=ser.read()
-  #      if (read_serial == '1'):
-   #         has_been_pressed = 1
- #   course_nodes[course_nodes.current_node].cache_present
-   # time.sleep(20)
-      
-   #  BrickPiSetup()  # Setup the serial port for communication (***NB*** APP MUST BE RUN IN SUDO MODE ***NB***)
-   #  self.leftMotor = PORT_B
-   #  self.rightMotor = PORT_A
-   #  self.motors = [leftMotor, rightMotor]
-   # BrickPi.MotorEnable[leftMotor] = 1  # Don't turn these off - set its speed to 0 to stop a motor
-   # BrickPi.MotorEnable[rightMotor] = 1
-   # BrickPiSetupSensors()  # Send the properties of sensors to BrickPi
-   # BrickPi.Timeout = 30000  # So motors won't stop cause of lack of contact (30 seconds)
-   # BrickPiSetTimeout()  # (BrickPi's default is 250 msec (really meeses with motor reliability))
-	
-    course_nodes.initialize()
-  #  print (course_nodes.current_node)
-  #  for i in range(49):
-#	print("Node Number", i, " Node Column", course_nodes[i].col_number, " Node Row", course_nodes[i].row_number)
-    #PerimeterSearch(course_nodes, motor)
-    #GridSearch(course_nodes, motor)
+   time.sleep(4) #need this always before code begins! 4 seems to work okay
 
+  # while stillTurning != 'g':
+   #   motor.movement(5,-1,100,100) #left turn
+    #  stillTurning = sendAndReceiveValue('h', 'z', 'z')
+    #  print (stillTurning)
 
-    PerimeterSearch(course_nodes)
-   # GridSearch(course_nodes)
+   #obstacleAvoidance(course_nodes, motor) #tester. use only in grid search code
 
-    while 1:
-        time.sleep(.01)
-	print ("done")
+   #use for reference. do not actually include in code
+    #print (course_nodes.current_node)'
+    #print (course_nodes[5].is_perimeter)
+    #print (course_nodes[course_nodes.current_node].is_perimeter)
+
+       #testing
+   #while stillTurning != 'g':
+   #while 1:
+     # motor.movement(1,-1,100,100) #left turn
+     # getHeading = sendAndReceiveValue('h', 'z', 'z')
+     #call header comparison code
+    #  print (stillTurning)
+   turn('l')
+
+   #course_nodes.initialize()
+  # PerimeterSearch(course_nodes)
+  # GridSearch(course_nodes)
+#
+#   completeGrid()
+#   time.sleep(.01)
+   print ("done")
+   while True:
+      time.sleep(.01)
 
 if __name__ == "__main__":
     main()
-

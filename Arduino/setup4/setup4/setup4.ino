@@ -372,9 +372,9 @@ String IMUTurn(void){
   int header;
   //put code for get header here
   
-   //returnHeader += convertInt2Char(header / 100);
-   //returnHeader += convertInt2Char((header  % 100) / 10);
-   //returnHeader += convertInt2Char(header  % 10);
+   returnHeader += convertInt2Char(header / 100);
+   returnHeader += convertInt2Char((header  % 100) / 10);
+   returnHeader += convertInt2Char(header  % 10);
    
   
   

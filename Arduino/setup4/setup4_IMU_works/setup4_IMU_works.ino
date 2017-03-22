@@ -51,20 +51,23 @@ char turn;
 //function declarations
 //converts a string array of values to an integer  
 void ledValues(int, char);
-int convertStr2Int(char digit);
+int convertChar2Int(char);
+char convertInt2Char(int);
 void restartLEDs(void);
 void write7Seg(char);
 
+//IMU function
+int get_updated_heading(void);
+
 String number2String(int);
 
-
-//void ledValues(char *typeOfNode);
-//int** convert1Dto2d(int *1dArray);
 
 //initializers for serial communication
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 int Heading;
+
+
 
 
 void setup() {
@@ -116,8 +119,8 @@ void loop()
     
     char actionType = inputString[0];
    // Serial.print(actionType);
-    int number = 10*convertStr2Int(inputString[1]) + convertStr2Int(inputString[2]);
-    int headerNumber = 100*convertStr2Int(inputString[1]) + 10*convertStr2Int(inputString[2]) + convertStr2Int(inputString[3]);
+    int number = 10*convertChar2Int(inputString[1]) + convertChar2Int(inputString[2]);
+    int headerNumber = 100*convertChar2Int(inputString[1]) + 10*convertChar2Int(inputString[2]) + convertChar2Int(inputString[3]);
     char sevSegNumber = inputString[1];
     char gridType = inputString[3];
     
@@ -157,24 +160,14 @@ void loop()
               break;
     case 'g' : 
               updated_heading = get_updated_heading();
-              heading_delta = get_heading_delta(updated_heading);
-              fwd = move_fwd(heading_delta);
+              //heading_delta = get_heading_delta(updated_heading);
+              updated_heading += '\n';
+              //fwd = move_fwd(heading_delta);
               Serial.print("heading data section     ");
-              Serial.write(updated_heading);
-              Serial.write(fwd);
+              Serial.println(updated_heading);
+              //Serial.write(fwd);
               Serial.flush();
               break;
-      
-    case 'h': 
-        Serial.print("Test Here!");
-        updated_heading = get_updated_heading();
-        heading_delta = get_heading_delta(updated_heading);
-        turn = move_turn(heading_delta);
-        Serial.write(turn);
-        Serial.flush();
-        break;
-      
-    
     default:
               Serial.write('z');
               Serial.flush();
@@ -231,7 +224,7 @@ void ledValues(int number, char typeOfString)
 //takes a number in the form of a character
 //converts the character number to an integer number
 //returns the integer number
-int convertStr2Int(char digit){
+int convertChar2Int(char digit){
   int digitAsInt = 0;
   
   switch(digit){
@@ -289,8 +282,8 @@ String number2String(int number){
 //takes a number in the form of a character
 //converts the character number to an integer number
 //returns the integer number
-char convertInt2Char(char digit){
-  int digitAsInt = 0;
+char convertInt2Char(int digit){
+  char digitAsInt = 0;
   
   switch(digit){
     case 0:
@@ -446,6 +439,7 @@ int get_heading_delta(int updated_heading) {
   return heading_delta;
 }
 
+/*
 // move forward with l/r compensation
 char move_fwd(int heading_delta) {
   char left = 'l';
@@ -474,6 +468,7 @@ char move_turn(int heading_delta) {
   }
   return end_turn;
 }
+*/
 
 
 

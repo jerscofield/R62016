@@ -23,8 +23,8 @@ right_motor = PORT_A
 motor = rotationMotorTest.MotorControls(left_motor, right_motor)
 
 #initialize serial communication
-#ser = serial.Serial('/dev/ttyUSB1',9600, timeout = 2)   #use with redboard
-ser = serial.Serial('/dev/ttyAMA0',9600, timeout = 2)  #use with arduino uno
+#ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 2)   #use with redboard
+ser = serial.Serial('/dev/ttyACM0',9600, timeout = 2)  #use with arduino uno
 
 #function for shutdown pi when red button is pressed
 def Shutdown(channel):
@@ -118,40 +118,22 @@ def obstacleAvoidance(course_nodes, motor):
    course_nodes.avoidingObstacle = True
 
    #if we are in an even row, do this obstacle avoidance
-   if course_nodes[course_nodes.current_node].row_number % 2 == 0:
-      course_nodes.change_orientation('l')
-      motor.move_bot(1)  # turn left, go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
-      course_nodes.change_orientation('r')
-      motor.move_bot(10)  # turn right, go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
-      motor.move_bot(0)  # go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node() 
-      course_nodes.change_orientation('r')
-      motor.move_bot(10)  # turn right, go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
-      motor.move_bot(0)  # go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
-      motor.move_bot(8)  # turn left
-      course_nodes.change_orientation('l')
+   #if course_nodes[course_nodes.current_node].row_number % 2 == 0:
+   course_nodes.change_orientation('l')
+   motor.move_bot(1)  # turn left, go straight
+   course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+   course_nodes.change_orientation('r')
+   motor.move_bot(10)  # turn right, go straight
+   course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+   motor.move_bot(0)  # go straight
+   course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node() 
+   course_nodes.change_orientation('r')
+   motor.move_bot(10)  # turn right, go straight
+   course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
+   motor.move_bot(8)  # turn left
+   course_nodes.change_orientation('l')
 
-   #if we are in an odd row, do this obstacle avoidance
-   elif course_nodes[course_nodes.current_node].row_number % 2 == 1:
-      course_nodes.change_orientation('l')
-      motor.move_bot(10)  # turn right, go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
-      course_nodes.change_orientation('r')
-      motor.move_bot(1)  # turn left, go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
-      motor.move_bot(0)  # go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node() 
-      course_nodes.change_orientation('r')
-      motor.move_bot(1)  # turn left, go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
-      motor.move_bot(0)  # go straight
-      course_nodes.current_node = course_nodes.current_node + course_nodes.increment_node()
-      motor.move_bot(7)  # turn right
-      course_nodes.change_orientation('l')
+
 
 #better obstacle avoidance code. has not been debugged yet
      # course_nodes.change_orientation('l')
@@ -169,9 +151,6 @@ def obstacleAvoidance(course_nodes, motor):
       #course_nodes.change_orientation('l') #reorient direction in node
       #print ("end of obstacle avoidance**********")
 
-           
-      #course_nodes.change_orientation('r') #reorient direction in node
-      #print ("end of obstacle avoidance************")
 
 
 #convert a character to a number to send or receive
@@ -230,19 +209,22 @@ def char2Number(number):
 def sendAndReceiveValue(actionCode, actionToTake, color):
     
     send = actionCode
-    values = ' '
+    values = ''
 
 
     if actionCode == 'a':    #see if obstacle is in front of robot
            send += '\n'
            ser.write(send)
+           waitForSerial()
            values = ser.read()  #see if obstacle is to the right of, in front of, or to the left of the robot
     elif actionCode == 'b':
            send += '\n'
            ser.write(send)
-           sensor1 = ser.read() #right
-           sensor2 = ser.read() #front
-           sensor3 = ser.read() #left
+          # waitForSerial()
+           if ser.readline() > 0:
+              sensor1 = ser.read() #right
+              sensor2 = ser.read() #front
+              sensor3 = ser.read() #left
            values = {1: sensor1, 2: sensor2, 3: sensor3}
     elif actionCode == 'c':  #send value and color to matrix display 
            if actionToTake < 10:
@@ -262,20 +244,46 @@ def sendAndReceiveValue(actionCode, actionToTake, color):
            send += number2Char(actionToTake)
            send += '\n'
            ser.write(send)
+           waitForSerial()
            values = ser.read()
     elif actionCode == 'g':
            send += '\n'
            ser.write(send)
-           values1 = ser.read()
-           values2 = ser.read()
-           values3 = ser.read()
-           values = char2Number(value1)*100 + char2Number(values)*10 + char2Number(value3) #returns 3 digit integer
+          #ser.flush()
+           if ser.readline() > 0:
+              value1 = ser.read()
+              value2 = ser.read()
+              value3 = ser.read()              
+           #waitForSerial()
+             # values = ser.read()
+           #ser.flush()
+         #  print ("values: ", values)
+           #value1 = ser.read() #right
+         #  value2 = ser.read() #front
+          # value3 = ser.read() #left
+          # print("Values: ", values)
+           print("value1", value1)
+           print("value2", value2)
+           print("value3", value3)
+
+           values = char2Number(value1)*100 + char2Number(value2)*10 + char2Number(value3) #returns 3 digit integer
     else:
-           send = actionCode
            send += actionCode
 
     #print (send)
     return values
+
+def waitForSerial():
+      serWaitCount=0
+      while True:
+         if (len ( ser.readline()) == 0):
+            print("serial is ready. ")
+            break
+         elif (serWaitCount > 10000):
+            print("serial timed out. ")
+            break
+         else:
+            serWaitCount=serWaitCount+1
 
 
 #after all nodes have been travsersed, this code will check to see if the unmarked nodes are above an EMF field
@@ -308,7 +316,7 @@ def turn(turnDirection):
    if heading > 180:
       heading = heading - 360
 
-   while (abs(heading - destinationHeading) > tolerance):
+   #while (abs(heading - destinationHeading) > tolerance):
 
 def calc_motor_degree():
    destination_heading = 90;
@@ -332,6 +340,8 @@ def main():
    
    time.sleep(4) #need this always before code begins! 4 seems to work okay
 
+
+#tester. delete
   # while stillTurning != 'g':
    #   motor.movement(5,-1,100,100) #left turn
     #  stillTurning = sendAndReceiveValue('h', 'z', 'z')
@@ -346,11 +356,14 @@ def main():
 
        #testing
    #while stillTurning != 'g':
-   #while 1:
+   while 1:
      # motor.movement(1,-1,100,100) #left turn
-     # getHeading = sendAndReceiveValue('h', 'z', 'z')
+      print (sendAndReceiveValue('g', 'z', 'z'))
+      time.sleep(1)
+      
      #call header comparison code
     #  print (stillTurning)
+    #tester code
    turn('l')
 
    #course_nodes.initialize()

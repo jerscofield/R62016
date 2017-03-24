@@ -356,19 +356,19 @@ def main():
 
        #testing
    #while stillTurning != 'g':
-   while 1:
+  # while 1:
      # motor.movement(1,-1,100,100) #left turn
-      print (sendAndReceiveValue('g', 'z', 'z'))
-      time.sleep(1)
+   #   print (sendAndReceiveValue('g', 'z', 'z'))
+    #  time.sleep(1)
       
      #call header comparison code
     #  print (stillTurning)
     #tester code
-   turn('l')
+   #turn('l')
 
-   #course_nodes.initialize()
-  # PerimeterSearch(course_nodes)
-  # GridSearch(course_nodes)
+   course_nodes.initialize()
+   PerimeterSearch(course_nodes)
+   GridSearch(course_nodes)
 #
 #   completeGrid()
 #   time.sleep(.01)
